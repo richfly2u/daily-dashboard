@@ -184,6 +184,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRazQsleeT4H4Nt6VrqI1KGlfVenc",
@@ -195,6 +196,10 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+let authReady = false;
+signInAnonymously(auth).catch(e => console.warn('Anon auth:', e));
+onAuthStateChanged(auth, user => { authReady = true; if (user) setStatus(true); });
 
 const DEFAULT_NAMES = ["陳冠宇","姜艾陵","曾文欽","陳淑鳳","呂桓毅","陳有德","范育誠","鄭子韋","康必達","陳育徵","邵玥秞","呂秀娟","林于修","王信淵","蘇素茹","李國珍","王嬿翔","洪國城","劉子榕","胡哲強"];
 

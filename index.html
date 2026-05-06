@@ -428,7 +428,7 @@ function render() {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
-function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; if(d.items[i].locked!==false) return; d.items.splice(i,1); render(); scheduleSave(); }
+function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; if(d.items[i].locked!==false && !editMode) return; d.items.splice(i,1); render(); scheduleSave(); }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 

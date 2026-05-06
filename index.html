@@ -204,7 +204,7 @@ const DEFAULTS = [
   {text:"和一個人深度聊天",type:"text",locked:true},
   {text:"記錄當天最大一筆開支",type:"text",locked:true},
   {text:"睡前寫下明天要做的事",type:"text",locked:true},
-  {text:"成全對象",type:"name-picker",selected:"",locked:true}
+  {text:"今天成全了誰？",type:"name-picker",selected:"",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -359,12 +359,9 @@ function render() {
     div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '');
     let extraHTML = '';
     if (item.type === 'name-picker') {
-      const sel = item.selected || '';
-      extraHTML = `<span class="item-text name-picker">👤 ${esc(text)}</span>` +
-        `<select class="name-select" data-idx="${i}">${esc('<option value="">-- 選取人員 --</option>')}` +
-        nameList.map(n => `<option value="${esc(n)}"${n===sel?' selected':''}>${esc(n)}</option>`).join('') +
-        `</select>` +
-        `<span class="item-selected" data-idx="${i}">${sel ? esc(sel) : '未選'}</span>`;
+      if (!item.selected) item.selected = getTodayPerson();
+      const todayName = item.selected || '?';
+      extraHTML = `<span class="item-text">👤 今天成全了 <strong>${esc(todayName)}</strong> 了嗎？</span>`;
       var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
@@ -433,6 +430,13 @@ function render() {
   document.querySelectorAll('.note-close-btn').forEach(btn => {
     btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
   });
+}
+
+function getTodayPerson() {
+  if (!nameList.length) return '';
+  const start = new Date('2024-01-01');
+  const diff = Math.floor((Date.now() - start.getTime()) / 86400000);
+  return nameList[diff % nameList.length];
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

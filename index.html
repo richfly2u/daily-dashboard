@@ -260,7 +260,7 @@ async function saveDoc(extra) {
   try {
     const ref = doc(db, "dashboard", boardKey);
     const data = await loadDoc();
-    const names = nameList.length ? nameList : DEFAULT_NAMES;
+    const names = nameList.length ? nameList : (boardKey === 'alan' ? DEFAULT_NAMES : []);
     data._names = names;
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
@@ -273,7 +273,7 @@ async function saveDoc(extra) {
 
 async function loadDay(key, dateStr) {
   const data = await loadDoc();
-  nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
+  nameList = data._names && data._names.length ? data._names : (boardKey === 'alan' ? DEFAULT_NAMES : []);
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -311,7 +311,7 @@ async function saveCurrentDay() {
   if (!day) return;
   const data = await loadDoc();
   data[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
-  data._names = nameList.length ? nameList : DEFAULT_NAMES;
+  data._names = nameList.length ? nameList : (boardKey === 'alan' ? DEFAULT_NAMES : []);
   try {
     await setDoc(doc(db, "dashboard", boardKey), data);
     setStatus(true);
@@ -325,7 +325,7 @@ function scheduleSave() {
 
 async function preloadRecent(key) {
   const data = await loadDoc();
-  nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
+  nameList = data._names && data._names.length ? data._names : (boardKey === 'alan' ? DEFAULT_NAMES : []);
   for (const [ds, dayData] of Object.entries(data)) {
     if (ds === '_names') continue;
     if (dayData && dayData.items) {

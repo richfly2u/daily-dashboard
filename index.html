@@ -336,8 +336,9 @@ function render() {
   list.innerHTML = '';
   items.forEach((item, i) => {
     const text = item.text, done = item.done, notes = item.notes || '';
+    const locked = item.locked !== false;
     const div = document.createElement('div');
-    div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '');
+    div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '') + (locked ? '' : ' unlocked');
     let extraHTML = '';
     if (item.type === 'name-picker') {
       const sel = item.selected || '';
@@ -351,7 +352,6 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    const locked = item.locked !== false;
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `<button class="edit-btn" data-idx="${i}"${locked?' style="display:none"':''}>✏️</button>` +

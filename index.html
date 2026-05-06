@@ -239,13 +239,15 @@ async function loadDay(key, dateStr) {
       migrated.push({...DEFAULTS[j], done:false, selected:DEFAULTS[j].selected||"", notes:""});
     }
     // Migrate existing items: if DEFAULTS says name-picker but stored item is text, upgrade it
+    // Also update text if DEFAULTS text differs (e.g. "值班人員" → "成全對象")
     DEFAULTS.forEach((def, j) => {
-      if (def.type === 'name-picker' && j < migrated.length && migrated[j].type !== 'name-picker') {
-        migrated[j].type = 'name-picker';
-        migrated[j].selected = migrated[j].selected || '';
-        // Optionally update text to match default
+      if (def.type === 'name-picker' && j < migrated.length) {
+        if (migrated[j].type !== 'name-picker') {
+          migrated[j].type = 'name-picker';
+          migrated[j].selected = migrated[j].selected || '';
+        }
+        // Always sync text with defaults
         migrated[j].text = def.text;
-        if (migrated[j].notes) migrated[j].notes = migrated[j].notes; // preserve notes
       }
     });
     cache[dateStr] = { items: migrated };

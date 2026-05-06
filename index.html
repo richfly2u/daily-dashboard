@@ -202,9 +202,9 @@ const DEFAULTS = [
   {text:"做 10 分鐘運動",type:"text",locked:true},
   {text:"學一個小技能",type:"text",locked:true},
   {text:"和一個人深度聊天",type:"text",locked:true},
-  {text:"成全對象",type:"name-picker",selected:"",locked:true},
   {text:"記錄當天最大一筆開支",type:"text",locked:true},
-  {text:"睡前寫下明天要做的事",type:"text",locked:true}
+  {text:"睡前寫下明天要做的事",type:"text",locked:true},
+  {text:"成全對象",type:"name-picker",selected:"",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -524,10 +524,28 @@ function renderNameList() {
   if (!container) return;
   container.innerHTML = nameList.map((n, i) =>
     `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #282838;">
-      <span style="flex:1;font-size:14px;">${esc(n)}</span>
+      <span class="name-text" data-idx="${i}" style="flex:1;font-size:14px;cursor:text;">${esc(n)}</span>
       <button class="del-name-btn" data-idx="${i}" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
     </div>`
   ).join('');
+  container.querySelectorAll('.name-text').forEach(span => {
+    span.onclick = () => {
+      const idx = parseInt(span.dataset.idx);
+      const inp = document.createElement('input');
+      inp.type = 'text'; inp.value = nameList[idx];
+      inp.style.cssText = 'flex:1;font-size:14px;background:#0f0f13;border:1px solid #6c5ce7;border-radius:4px;padding:4px 8px;color:#e8e8ed;outline:none;font-family:inherit;';
+      inp.maxLength = 20;
+      span.replaceWith(inp);
+      inp.focus(); inp.select();
+      const save = () => {
+        const v = inp.value.trim();
+        if (v && v !== nameList[idx]) nameList[idx] = v;
+        renderNameList();
+      };
+      inp.onblur = save;
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } };
+    };
+  });
   container.querySelectorAll('.del-name-btn').forEach(btn => {
     btn.onclick = () => {
       const idx = parseInt(btn.dataset.idx);

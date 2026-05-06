@@ -177,6 +177,7 @@
   <div class="footer-actions">
     <button class="footer-btn" id="resetBtn">🗑️ 重置今天</button>
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
+    <button class="footer-btn" id="authBoardBtn" style="display:none">📋 開放板管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
 </div>
@@ -579,6 +580,76 @@ function renderNameList() {
   });
 }
 
+// === Board Authorization Dialog ===
+let authorizedBoards = [];
+async function loadAuthorized() {
+  const ref = doc(db, "dashboard", "alan");
+  const snap = await getDoc(ref);
+  authorizedBoards = snap.exists() ? (snap.data()._authorized || []) : [];
+  return authorizedBoards;
+}
+async function saveAuthorized(list) {
+  const ref = doc(db, "dashboard", "alan");
+  await setDoc(ref, { _authorized: list }, { merge: true });
+  authorizedBoards = list;
+}
+function showAuthBoardDialog() {
+  const existing = document.getElementById('authBoardDialog');
+  if (existing) { existing.style.display = 'flex'; renderAuthBoardList(); return; }
+  const html = `
+<div id="authBoardDialog" style="display:flex;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:#1a1a24;border-radius:16px;padding:24px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:16px;">📋 管理開放板</h3>
+    <p style="color:#888;font-size:13px;margin-bottom:12px;">只有列在此處的板名稱才能登入使用</p>
+    <div id="authBoardList"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <input type="text" id="newAuthBoardInput" placeholder="板名稱..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid #282838;border-radius:8px;padding:8px 12px;color:#e8e8ed;font-size:14px;outline:none;">
+      <button id="addAuthBoardBtn" class="add-btn" style="position:static;">+</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button id="closeAuthBoardDialog" style="flex:1;background:#282838;border:none;border-radius:10px;padding:10px;color:#e8e8ed;font-size:14px;cursor:pointer;">關閉</button>
+      <button id="saveAuthBoardList" style="flex:1;background:#6c5ce7;border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存</button>
+    </div>
+  </div>
+</div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const dialog = document.getElementById('authBoardDialog');
+  document.getElementById('closeAuthBoardDialog').onclick = () => { dialog.style.display = 'none'; };
+  document.getElementById('addAuthBoardBtn').onclick = () => {
+    const inp = document.getElementById('newAuthBoardInput');
+    const n = inp.value.trim().toLowerCase();
+    if (!n || n === 'alan') return;
+    if (!authorizedBoards.includes(n)) authorizedBoards.push(n);
+    inp.value = ''; renderAuthBoardList();
+  };
+  document.getElementById('newAuthBoardInput').onkeydown = e => {
+    if (e.key === 'Enter') document.getElementById('addAuthBoardBtn').click();
+  };
+  document.getElementById('saveAuthBoardList').onclick = async () => {
+    await saveAuthorized(authorizedBoards);
+    dialog.style.display = 'none';
+  };
+  loadAuthorized().then(renderAuthBoardList);
+}
+function renderAuthBoardList() {
+  const container = document.getElementById('authBoardList');
+  if (!container) return;
+  container.innerHTML = authorizedBoards.length === 0
+    ? '<div style="color:#555;font-size:13px;padding:12px 0;text-align:center;">尚未開放任何板</div>'
+    : authorizedBoards.map(n =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #282838;">
+        <span style="flex:1;font-size:14px;">${esc(n)}</span>
+        <button class="del-auth-btn" data-board="${n}" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
+      </div>`
+    ).join('');
+  container.querySelectorAll('.del-auth-btn').forEach(btn => {
+    btn.onclick = () => {
+      authorizedBoards = authorizedBoards.filter(b => b !== btn.dataset.board);
+      renderAuthBoardList();
+    };
+  });
+}
+
 // === Events ===
 document.getElementById('loginBtn').onclick = () => doLogin();
 document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') document.getElementById('loginPw').focus(); };
@@ -594,6 +665,18 @@ async function doLogin() {
   if (!key) return;
   boardKey = key;
   await waitAuth();
+  // Check authorization: only 'alan' and boards in alan's _authorized list can log in
+  if (key !== 'alan') {
+    const masterRef = doc(db, "dashboard", "alan");
+    const masterSnap = await getDoc(masterRef);
+    const authorized = masterSnap.exists() ? (masterSnap.data()._authorized || []) : [];
+    if (!authorized.includes(key)) {
+      document.getElementById('pwError').textContent = '⚠️ 此板不存在或尚未開放';
+      document.getElementById('pwError').style.display = 'block';
+      boardKey = '';
+      return;
+    }
+  }
   const data = await loadDoc();
   const stored = data._pwHash;
   if (stored) {
@@ -613,6 +696,7 @@ async function doLogin() {
   document.getElementById('pwError').style.display = 'none';
   localStorage.setItem('dashboard_key', boardKey);
   document.getElementById('boardName').textContent = key + ' 的儀表板';
+  document.getElementById('authBoardBtn').style.display = key === 'alan' ? '' : 'none';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   await loadDay(boardKey, dk(currentDate));
@@ -625,6 +709,7 @@ document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); re
 document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
 document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };
 document.getElementById('nameListBtn').onclick = showNameDialog;
+document.getElementById('authBoardBtn').onclick = showAuthBoardDialog;
 document.getElementById('editToggle').onclick = () => {
   editMode = !editMode;
   document.getElementById('editToggle').textContent = editMode ? '✅ 完成編輯' : '✏️ 編輯項目';

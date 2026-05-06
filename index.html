@@ -590,20 +590,22 @@ async function hashPw(pw) {
 }
 async function doLogin() {
   const key = document.getElementById('loginKey').value.trim().toLowerCase();
-  if (!key) return;
   const pw = document.getElementById('loginPw').value;
+  if (!key) return;
+  if (!pw) { document.getElementById('pwError').textContent = '⚠️ 請輸入密碼'; document.getElementById('pwError').style.display = 'block'; return; }
   boardKey = key;
   await waitAuth();
   const data = await loadDoc();
   const stored = data._pwHash;
   if (stored) {
-    const entered = pw ? await hashPw(pw) : '';
+    const entered = await hashPw(pw);
     if (entered !== stored) {
+      document.getElementById('pwError').textContent = '⚠️ 密碼錯誤';
       document.getElementById('pwError').style.display = 'block';
       return;
     }
-  } else if (pw) {
-    // First time with password - store it
+  } else {
+    // New board - set password
     const hash = await hashPw(pw);
     const ref = doc(db, "dashboard", boardKey);
     await setDoc(ref, { _pwHash: hash, _names: nameList }, { merge: true });

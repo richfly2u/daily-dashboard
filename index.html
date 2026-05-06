@@ -367,9 +367,9 @@ function render() {
       `<button class="note-btn" data-idx="${i}">📝</button>` +
       `<button class="del-btn" data-idx="${i}">✕</button>` +
       `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
-    div.querySelector('.cb').onclick = () => toggle(i);
+    div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {
-      div.querySelector('.item-text').onclick = () => toggle(i);
+      div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
     }
     const selEl = div.querySelector('.name-select');
     if (selEl) selEl.onchange = function() {

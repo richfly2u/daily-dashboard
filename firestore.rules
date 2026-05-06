@@ -1,0 +1,17 @@
+// 每日儀表板 Firestore 安全規則
+// 使用 key 作為文檔 ID 前綴，任何人知道 key 就能讀寫
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 儀表板資料：以 boardKey_date 為 document ID
+    match /dashboards/{docId} {
+      allow read, write: if true;
+    }
+    
+    // 拒絕其他 collection
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

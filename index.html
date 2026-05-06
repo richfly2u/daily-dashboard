@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="行動儀表板">
+<title>每日行動儀表板</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Inter', sans-serif; background: #0f0f13; color: #e8e8ed; min-height: 100vh; }
+  .app { max-width: 720px; margin: 0 auto; padding: 24px 16px 40px; }
+
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .status-dot.online { background: #34d399; }
+  .status-dot.offline { background: #f59e0b; }
+
+  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; padding: 20px; }
+  .login-screen h2 { font-size: 24px; margin-bottom: 8px; }
+  .login-screen p { color: #888; font-size: 14px; margin-bottom: 24px; }
+  .login-screen input { background: #1a1a24; border: 1px solid #282838; border-radius: 12px; padding: 14px 18px; color: #e8e8ed; font-size: 18px; text-align: center; outline: none; width: 200px; }
+  .login-screen input:focus { border-color: #6c5ce7; }
+  .login-screen .login-btn { background: linear-gradient(135deg, #6c5ce7, #a855f7); border: none; color: white; padding: 12px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  .login-screen .hint { color: #555; font-size: 12px; margin-top: 16px; }
+
+  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; }
+  .date-nav { display: flex; align-items: center; justify-content: space-between; background: #1a1a24; border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; }
+  .date-nav .date-label { font-size: 16px; font-weight: 600; }
+  .date-nav .date-label .weekday { color: #888; font-weight: 400; font-size: 13px; margin-left: 6px; }
+  .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+  .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .stat-card { background: #1a1a24; border-radius: 14px; padding: 14px; text-align: center; }
+  .stat-card .num { font-size: 24px; font-weight: 700; }
+  .stat-card .label { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .num.green { color: #34d399; }
+  .stat-card .num.blue { color: #60a5fa; }
+  .stat-card .num.purple { color: #a78bfa; }
+
+  .progress-wrap { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 24px; }
+  .progress-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+  .progress-top .pct { font-weight: 700; color: #6c5ce7; }
+  .progress-bar { height: 6px; background: #282838; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #a855f7); border-radius: 3px; transition: width .5s ease; }
+
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .check-item { background: #1a1a24; border-radius: 12px; padding: 0 12px 0 6px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .check-item.done { opacity: 0.7; }
+  .check-item.done .item-text { text-decoration: line-through; color: #666; }
+  .check-item .cb { width: 22px; height: 22px; border: 2px solid #444; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
+  .check-item.done .cb { border-color: #34d399; background: #34d399; color: #0f0f13; }
+  .check-item .item-text { flex: 1; padding: 12px 0; font-size: 14px; }
+  .check-item .del-btn { background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; }
+  .check-item:hover .del-btn { opacity: 1; }
+  .check-item .item-num { color: #555; font-size: 12px; font-weight: 600; width: 20px; text-align: center; flex-shrink: 0; }
+  .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
+  .add-wrap input { flex: 1; background: #1a1a24; border: 1px solid #282838; border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; }
+  .add-wrap input:focus { border-color: #6c5ce7; }
+  .add-wrap .add-btn { background: #6c5ce7; border: none; color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+
+  .heatmap-section { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 20px; }
+  .heatmap-section h3 { font-size: 13px; color: #888; margin-bottom: 12px; }
+  .heatmap { display: flex; flex-wrap: wrap; gap: 3px; }
+  .heatmap .day { width: 12px; height: 12px; border-radius: 2px; background: #0f0f13; }
+  .heatmap .day.l0 { background: #0f0f13; }
+  .heatmap .day.l1 { background: #1a1a3a; }
+  .heatmap .day.l2 { background: #2d2d6e; }
+  .heatmap .day.l3 { background: #5b5be0; }
+  .heatmap .day.l4 { background: #818cf8; }
+  .heatmap .day.l5 { background: #34d399; }
+  .heatmap .day.today { outline: 2px solid #a855f7; outline-offset: 1px; }
+  .heatmap-legend { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 8px; font-size: 10px; color: #555; }
+  .heatmap-legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+  .footer-actions { display: flex; justify-content: center; gap: 12px; margin-top: 10px; }
+  .footer-btn { background: none; border: none; color: #555; font-size: 12px; cursor: pointer; padding: 8px 12px; border-radius: 8px; }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #282838; border-top-color: #6c5ce7; border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 480px) { .app { padding: 16px 12px 32px; } }
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div style="font-size:48px;margin-bottom:16px;">📋</div>
+  <h2>每日行動儀表板</h2>
+  <p>輸入儀表板名稱</p>
+  <input type="text" id="loginKey" placeholder="alan" maxlength="20" autocomplete="off">
+  <button class="login-btn" id="loginBtn">進入</button>
+  <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
+  <div class="header">
+    <h1><span class="status-dot offline" id="statusDot"></span>📋 <span id="boardName">儀表板</span></h1>
+    <div class="streak-badge" id="streakBadge" style="display:none">
+      <span class="fire">🔥</span><span id="streakCount">0</span>天
+    </div>
+  </div>
+
+  <div class="date-nav">
+    <button id="prevDay">‹</button>
+    <div><span class="date-label" id="dateLabel"></span><span class="weekday" id="weekdayLabel"></span></div>
+    <button id="nextDay">›</button>
+    <div class="today-btn" id="todayBtn">今天</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num blue" id="doneCount">0</div><div class="label">已完成</div></div>
+    <div class="stat-card"><div class="num green" id="totalCount">0</div><div class="label">總項目</div></div>
+    <div class="stat-card"><div class="num purple" id="rateCount">0%</div><div class="label">完成率</div></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-top"><span>今日進度</span><span class="pct" id="progressPct">0%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="checklist" id="checklist"></div>
+
+  <div class="add-wrap">
+    <input type="text" id="newItemInput" placeholder="新增項目..." maxlength="60">
+    <button class="add-btn" id="addBtn">+</button>
+  </div>
+
+  <div class="heatmap-section">
+    <h3>📊 近 90 天熱力圖</h3>
+    <div class="heatmap" id="heatmap"></div>
+    <div class="heatmap-legend"><span>少</span><span class="swatch" style="background:#0f0f13"></span><span class="swatch" style="background:#1a1a3a"></span><span class="swatch" style="background:#2d2d6e"></span><span class="swatch" style="background:#5b5be0"></span><span class="swatch" style="background:#818cf8"></span><span class="swatch" style="background:#34d399"></span><span>多</span></div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="footer-btn" id="resetBtn">🗑️ 重置今天</button>
+    <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
+  </div>
+</div>
+
+<script>
+// === Config ===
+const API_BASE = localStorage.getItem('dashboard_api_url') || 'http://localhost:5000';
+const DEFAULTS = ['早起後不碰手機，先喝水','每天讀 10 頁紙本書','寫三句話日記','整理一個空間（10分鐘）','做 10 分鐘運動','學一個小技能','和一個人深度聊天','記錄當天最大一筆開支','睡前寫下明天要做的事'];
+
+let boardKey = localStorage.getItem('dashboard_key') || '';
+let cache = {};
+let currentDate = new Date();
+let saveTimer = null;
+
+function dk(d) { return d.toISOString().slice(0,10); }
+function today() { return dk(new Date()); }
+
+async function api(method, path, body) {
+  const opts = { method, headers: {'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API_BASE + path, opts);
+  if (!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+
+async function loadDay(key, dateStr) {
+  try {
+    const r = await api('GET', `/api/data/${key}/${dateStr}`);
+    if (r.data && r.data.items) {
+      cache[dateStr] = { items: r.data.items, done: r.data.done || new Array(r.data.items.length).fill(false) };
+    } else {
+      cache[dateStr] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
+    }
+    setStatus(true);
+  } catch(e) {
+    console.warn('Load failed:', e);
+    setStatus(false);
+    if (!cache[dateStr]) cache[dateStr] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
+  }
+  render();
+}
+
+async function saveDay(key, dateStr) {
+  const day = cache[dateStr];
+  if (!day) return;
+  try {
+    await api('PUT', `/api/data/${key}/${dateStr}`, day);
+    setStatus(true);
+  } catch(e) {
+    console.warn('Save failed:', e);
+    setStatus(false);
+  }
+}
+
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { if (boardKey) saveDay(boardKey, dk(currentDate)); }, 500);
+}
+
+async function preloadRecent(key) {
+  const today2 = new Date();
+  for (let i = 1; i < 90; i++) {
+    const d = new Date(today2);
+    d.setDate(d.getDate() - i);
+    const ds = dk(d);
+    if (!cache[ds]) {
+      try {
+        const r = await api('GET', `/api/data/${key}/${ds}`);
+        if (r.data && r.data.items) cache[ds] = { items: r.data.items, done: r.data.done || new Array(r.data.items.length).fill(false) };
+        else cache[ds] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
+      } catch(e) { cache[ds] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) }; }
+    }
+  }
+  renderHeatmap();
+  renderStreak();
+}
+
+function setStatus(online) {
+  document.getElementById('statusDot').className = 'status-dot ' + (online ? 'online' : 'offline');
+}
+
+function render() {
+  const key = dk(currentDate);
+  const day = cache[key];
+  if (!day) return;
+  const items = day.items, done = day.done;
+  const total = items.length, completed = done.filter(Boolean).length, rate = total ? Math.round(completed/total*100) : 0;
+  document.getElementById('dateLabel').textContent = `${currentDate.getFullYear()}/${currentDate.getMonth()+1}/${currentDate.getDate()}`;
+  document.getElementById('weekdayLabel').textContent = `週${['日','一','二','三','四','五','六'][currentDate.getDay()]}`;
+  document.getElementById('todayBtn').style.display = dk(currentDate) === today() ? 'none' : '';
+  document.getElementById('doneCount').textContent = completed;
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('rateCount').textContent = rate + '%';
+  document.getElementById('progressPct').textContent = rate + '%';
+  document.getElementById('progressFill').style.width = rate + '%';
+  const list = document.getElementById('checklist');
+  list.innerHTML = '';
+  items.forEach((text, i) => {
+    const div = document.createElement('div');
+    div.className = 'check-item' + (done[i] ? ' done' : '');
+    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><span class="item-text">${esc(text)}</span><button class="del-btn" data-idx="${i}">✕</button>`;
+    div.querySelector('.cb').onclick = () => toggle(i);
+    div.querySelector('.item-text').onclick = () => toggle(i);
+    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i); };
+    list.appendChild(div);
+  });
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggle(i) { const d = cache[dk(currentDate)]; if (!d) return; d.done[i] = !d.done[i]; render(); scheduleSave(); }
+function del(i) { const d = cache[dk(currentDate)]; if (!d) return; d.items.splice(i,1); d.done.splice(i,1); render(); scheduleSave(); }
+function addItem(t) { t = t.trim(); if (!t) return; const d = cache[dk(currentDate)]; if (!d) return; d.items.push(t); d.done.push(false); render(); scheduleSave(); }
+
+function renderStreak() {
+  let s = 0; const d2 = new Date();
+  while (true) {
+    const ds = dk(d2); const day = cache[ds]; if (!day) break;
+    if (day.items.length && day.done.filter(Boolean).length === day.items.length) { s++; d2.setDate(d2.getDate()-1); } else break;
+  }
+  const badge = document.getElementById('streakBadge');
+  if (s > 0) { badge.style.display='inline-flex'; document.getElementById('streakCount').textContent=s; }
+  else badge.style.display='none';
+}
+
+function renderHeatmap() {
+  const container = document.getElementById('heatmap');
+  container.innerHTML = '';
+  const today2 = new Date();
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today2); d.setDate(d.getDate()-i); const ds = dk(d);
+    const day = cache[ds]; let level = 0;
+    if (day) { const r = day.items.length ? day.done.filter(Boolean).length/day.items.length : 0; if (r===1) level=5; else if (r>=.8) level=4; else if (r>=.6) level=3; else if (r>=.3) level=2; else if (r>0) level=1; }
+    const div = document.createElement('div');
+    div.className = `day l${level}` + (ds === today() ? ' today' : '');
+    div.title = `${d.getMonth()+1}/${d.getDate()}: ${day ? day.done.filter(Boolean).length+'/'+day.items.length : '0/0'}`;
+    container.appendChild(div);
+  }
+}
+
+// === Events ===
+document.getElementById('loginBtn').onclick = () => doLogin();
+document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') doLogin(); };
+async function doLogin() {
+  const key = document.getElementById('loginKey').value.trim().toLowerCase();
+  if (!key) return;
+  boardKey = key;
+  localStorage.setItem('dashboard_key', boardKey);
+  document.getElementById('boardName').textContent = key + ' 的儀表板';
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  await loadDay(boardKey, dk(currentDate));
+  preloadRecent(boardKey);
+}
+
+document.getElementById('prevDay').onclick = () => { currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if (!cache[ds]) { cache[ds] = {items:[...DEFAULTS],done:new Array(DEFAULTS.length).fill(false)}; if (boardKey) loadDay(boardKey,ds); } render(); };
+document.getElementById('nextDay').onclick = () => { currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if (!cache[ds]) { cache[ds] = {items:[...DEFAULTS],done:new Array(DEFAULTS.length).fill(false)}; if (boardKey) loadDay(boardKey,ds); } render(); };
+document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); render(); };
+document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
+document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };
+document.getElementById('resetBtn').onclick = () => {
+  if (!confirm('重置今天的資料？')) return;
+  const ds=dk(currentDate); cache[ds]={items:[...DEFAULTS],done:new Array(DEFAULTS.length).fill(false)}; render();
+  if (boardKey) saveDay(boardKey, ds);
+};
+document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
+document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveDay(boardKey, dk(currentDate)); });
+
+// Auto-login
+if (boardKey) {
+  document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  loadDay(boardKey, dk(currentDate));
+  preloadRecent(boardKey);
+}
+</script>
+</body>
+</html>

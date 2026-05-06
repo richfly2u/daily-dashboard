@@ -24,29 +24,29 @@
   .login-screen p { color: #888; font-size: 14px; margin-bottom: 24px; }
   .login-screen input { background: #1a1a24; border: 1px solid #282838; border-radius: 12px; padding: 14px 18px; color: #e8e8ed; font-size: 18px; text-align: center; outline: none; width: 200px; }
   .login-screen input:focus { border-color: #6c5ce7; }
-  .login-screen .login-btn { background: linear-gradient(135deg, #6c5ce7, #a855f7); border: none; color: white; padding: 12px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  .login-screen .login-btn { background: #6c5ce7; border: none; color: white; padding: 12px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background .15s ease; }
+  .login-screen .login-btn:hover { background: #7c6cf7; }
   .login-screen .hint { color: #555; font-size: 12px; margin-top: 16px; }
 
-  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; }
+  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: #f59e0b; padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; }
   .date-nav { display: flex; align-items: center; justify-content: space-between; background: #1a1a24; border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; }
   .date-nav .date-label { font-size: 16px; font-weight: 600; }
   .date-nav .date-label .weekday { color: #888; font-weight: 400; font-size: 13px; margin-left: 6px; }
-  .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
-  .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
+  .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: color .15s ease, background .15s ease; }
+  .date-nav button:hover { color: #e8e8ed; background: #282838; }
+  .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; transition: background .15s ease; }
+  .date-nav .today-btn:hover { background: #282838; }
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
   .stat-card { background: #1a1a24; border-radius: 14px; padding: 14px; text-align: center; }
-  .stat-card .num { font-size: 24px; font-weight: 700; }
+  .stat-card .num { font-size: 24px; font-weight: 700; color: #a78bfa; }
   .stat-card .label { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-card .num.green { color: #34d399; }
-  .stat-card .num.blue { color: #60a5fa; }
-  .stat-card .num.purple { color: #a78bfa; }
 
   .progress-wrap { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 24px; }
   .progress-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
   .progress-top .pct { font-weight: 700; color: #6c5ce7; }
   .progress-bar { height: 6px; background: #282838; border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #a855f7); border-radius: 3px; transition: width .5s ease; }
+  .progress-fill { height: 100%; width: 0%; background: #6c5ce7; border-radius: 3px; transition: width .5s cubic-bezier(.4,0,.2,1); }
 
   .checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
   .check-item { background: #1a1a24; border-radius: 12px; padding: 0 12px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; cursor: pointer; }
@@ -80,7 +80,8 @@
   .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
   .add-wrap input { flex: 1; background: #1a1a24; border: 1px solid #282838; border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; }
   .add-wrap input:focus { border-color: #6c5ce7; }
-  .add-wrap .add-btn { background: #6c5ce7; border: none; color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+  .add-wrap .add-btn { background: #6c5ce7; border: none; color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: background .15s ease; }
+  .add-wrap .add-btn:hover { background: #7c6cf7; }
 
   .heatmap-section { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 20px; }
   .heatmap-section h3 { font-size: 13px; color: #888; margin-bottom: 12px; }
@@ -97,7 +98,8 @@
   .heatmap-legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
 
   .footer-actions { display: flex; justify-content: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-  .footer-btn { background: none; border: none; color: #555; font-size: 12px; cursor: pointer; padding: 8px 12px; border-radius: 8px; }
+  .footer-btn { background: none; border: none; color: #555; font-size: 12px; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: color .15s ease, background .15s ease; }
+  .footer-btn:hover { color: #e8e8ed; background: #1a1a24; }
   .name-select { background: #0f0f13; border: 1px solid #444; border-radius: 6px; color: #e8e8ed; font-size: 12px; padding: 4px 6px; flex-shrink: 0; max-width: 90px; cursor: pointer; }
   .name-select:focus { border-color: #6c5ce7; }
   .item-selected { color: #a78bfa; font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 36px; }
@@ -145,9 +147,9 @@
   </div>
 
   <div class="stats">
-    <div class="stat-card"><div class="num blue" id="doneCount">0</div><div class="label">已完成</div></div>
-    <div class="stat-card"><div class="num green" id="totalCount">0</div><div class="label">總項目</div></div>
-    <div class="stat-card"><div class="num purple" id="rateCount">0%</div><div class="label">完成率</div></div>
+    <div class="stat-card"><div class="num" id="doneCount">0</div><div class="label">已完成</div></div>
+    <div class="stat-card"><div class="num" id="totalCount">0</div><div class="label">總項目</div></div>
+    <div class="stat-card"><div class="num" id="rateCount">0%</div><div class="label">完成率</div></div>
   </div>
 
   <div class="progress-wrap">
@@ -498,7 +500,7 @@ const dialogHTML = `
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button id="closeNameDialog" style="flex:1;background:#282838;border:none;border-radius:10px;padding:10px;color:#e8e8ed;font-size:14px;cursor:pointer;">關閉</button>
-      <button id="saveNameList" style="flex:1;background:linear-gradient(135deg,#6c5ce7,#a855f7);border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存名單</button>
+      <button id="saveNameList" style="flex:1;background:#6c5ce7;border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存名單</button>
     </div>
   </div>
 </div>`;

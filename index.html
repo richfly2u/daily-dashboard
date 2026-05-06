@@ -65,10 +65,12 @@
   .check-item .del-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; }
   .check-item:hover .del-btn { opacity: 1; }
   .check-item .item-num { color: #555; font-size: 12px; font-weight: 600; width: 20px; text-align: center; flex-shrink: 0; }
-  .note-area { display: none; width: 100%; padding: 4px 4px 10px; flex-shrink: 0; }
+  .note-area { display: none; width: 100%; padding: 4px 4px 10px; flex-shrink: 0; position: relative; }
   .note-area.open { display: block; }
   .note-area textarea { width: 100%; background: #0f0f13; border: 1px solid #282838; border-radius: 8px; padding: 10px 12px; color: #aaa; font-size: 13px; font-family: inherit; outline: none; resize: vertical; min-height: 80px; }
   .note-area textarea:focus { border-color: #6c5ce7; color: #e8e8ed; }
+  .note-close-btn { position: absolute; top: 6px; right: 6px; background: #282838; border: none; color: #888; font-size: 14px; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .note-close-btn:hover { background: #6c5ce7; color: white; }
   .note-history { margin-bottom: 8px; max-height: 100px; overflow-y: auto; padding: 4px 0; }
   .nh-item { font-size: 12px; color: #666; padding: 4px 0; border-bottom: 1px solid #1a1a2e; display: flex; gap: 8px; align-items: flex-start; }
   .nh-date { color: #888; white-space: nowrap; font-weight: 600; min-width: 40px; }
@@ -200,8 +202,8 @@ const DEFAULTS = [
   {text:"做 10 分鐘運動",type:"text",locked:true},
   {text:"學一個小技能",type:"text",locked:true},
   {text:"和一個人深度聊天",type:"text",locked:true},
-  {text:"記錄當天最大一筆開支",type:"text",locked:true},
   {text:"成全對象",type:"name-picker",selected:"",locked:true},
+  {text:"記錄當天最大一筆開支",type:"text",locked:true},
   {text:"睡前寫下明天要做的事",type:"text",locked:true}
 ];
 
@@ -371,7 +373,7 @@ function render() {
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `<button class="note-btn" data-idx="${i}">📝</button>` +
-      `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
+      `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
     div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {
       div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
@@ -426,19 +428,10 @@ function render() {
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
-    let noteTimer = null;
-    ta.oninput = () => { 
-      const idx=parseInt(ta.dataset.idx); 
-      const d=cache[dk(currentDate)]; 
-      if (d && d.items[idx]) d.items[idx].notes=ta.value; 
-      scheduleSave(); 
-      // Reset auto-close timer
-      if (noteTimer) clearTimeout(noteTimer);
-      noteTimer = setTimeout(() => {
-        ta.closest('.note-area').classList.remove('open');
-      }, 2000);
-    };
-    ta.onfocus = () => { if (noteTimer) clearTimeout(noteTimer); };
+    ta.oninput = () => { const idx=parseInt(ta.dataset.idx); const d=cache[dk(currentDate)]; if (d && d.items[idx]) d.items[idx].notes=ta.value; scheduleSave(); };
+  });
+  document.querySelectorAll('.note-close-btn').forEach(btn => {
+    btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
   });
 }
 

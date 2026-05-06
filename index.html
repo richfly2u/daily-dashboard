@@ -55,6 +55,8 @@
   .check-item .cb { width: 22px; height: 22px; border: 2px solid #444; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
   .check-item.done .cb { border-color: #34d399; background: #34d399; color: #0f0f13; }
   .check-item .item-text { flex: 1; padding: 12px 0; font-size: 14px; }
+  .check-item .lock-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0.5; flex-shrink: 0; }
+  .check-item:hover .lock-btn { opacity: 1; }
   .check-item .note-btn { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0.4; flex-shrink: 0; }
   .check-item:hover .note-btn, .check-item.has-note .note-btn { opacity: 1; }
   .check-item.has-note .note-btn { color: #a78bfa; }
@@ -176,16 +178,16 @@ const db = getFirestore(app);
 const DEFAULT_NAMES = ["陳冠宇","姜艾陵","曾文欽","陳淑鳳","呂桓毅","陳有德","范育誠","鄭子韋","康必達","陳育徵","邵玥秞","呂秀娟","林于修","王信淵","蘇素茹","李國珍","王嬿翔","洪國城","劉子榕","胡哲強"];
 
 const DEFAULTS = [
-  {text:"早起後不碰手機，先喝水",type:"text"},
-  {text:"每天讀 10 頁紙本書",type:"text"},
-  {text:"寫三句話日記",type:"text"},
-  {text:"整理一個空間（10分鐘）",type:"text"},
-  {text:"做 10 分鐘運動",type:"text"},
-  {text:"學一個小技能",type:"text"},
-  {text:"和一個人深度聊天",type:"text"},
-  {text:"記錄當天最大一筆開支",type:"text"},
-  {text:"睡前寫下明天要做的事",type:"text"},
-  {text:"成全對象",type:"name-picker",selected:""}
+  {text:"早起後不碰手機，先喝水",type:"text",locked:true},
+  {text:"每天讀 10 頁紙本書",type:"text",locked:true},
+  {text:"寫三句話日記",type:"text",locked:true},
+  {text:"整理一個空間（10分鐘）",type:"text",locked:true},
+  {text:"做 10 分鐘運動",type:"text",locked:true},
+  {text:"學一個小技能",type:"text",locked:true},
+  {text:"和一個人深度聊天",type:"text",locked:true},
+  {text:"記錄當天最大一筆開支",type:"text",locked:true},
+  {text:"睡前寫下明天要做的事",type:"text",locked:true},
+  {text:"成全對象",type:"name-picker",selected:"",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -199,8 +201,8 @@ function today() { return dk(new Date()); }
 
 function makeDay(items) {
   return {
-    items: items.map(i => typeof i === 'string' ? {text:i,type:"text",done:false,selected:"",notes:""}
-      : {...i, done: i.done || false, selected: i.selected || "", notes: i.notes || ""}),
+    items: items.map(i => typeof i === 'string' ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+      : {...i, done: i.done || false, selected: i.selected || "", notes: i.notes || "", locked: i.locked !== false}),
     _names: nameList
   };
 }
@@ -238,8 +240,8 @@ async function loadDay(key, dateStr) {
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
-      ? {text:i,type:"text",done:false,selected:"",notes:""}
-      : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||""});
+      ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+      : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
     // Append missing default items (e.g. new name-picker)
     for (let j = migrated.length; j < DEFAULTS.length; j++) {
       migrated.push({...DEFAULTS[j], done:false, selected:DEFAULTS[j].selected||"", notes:""});
@@ -267,7 +269,7 @@ async function saveCurrentDay() {
   const day = cache[dk(currentDate)];
   if (!day) return;
   const data = await loadDoc();
-  data[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||""})) };
+  data[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
   data._names = nameList.length ? nameList : DEFAULT_NAMES;
   try {
     await setDoc(doc(db, "dashboard", boardKey), data);
@@ -287,8 +289,8 @@ async function preloadRecent(key) {
     if (ds === '_names') continue;
     if (dayData && dayData.items) {
       cache[ds] = { items: dayData.items.map(i => typeof i === 'string'
-        ? {text:i,type:"text",done:false,selected:"",notes:""}
-        : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||""}) };
+        ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+        : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
       // Append missing defaults
       const mi = cache[ds].items;
       for (let j = mi.length; j < DEFAULTS.length; j++) {
@@ -344,8 +346,11 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
+    const locked = item.locked !== false;
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
-      `<button class="note-btn" data-idx="${i}">📝</button><button class="del-btn" data-idx="${i}">✕</button>` +
+      `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
+      `<button class="note-btn" data-idx="${i}">📝</button>` +
+      `<button class="del-btn" data-idx="${i}"${locked?' style="display:none"':''}>✕</button>` +
       `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
     div.querySelector('.cb').onclick = () => toggle(i);
     if (item.type !== 'name-picker') {
@@ -371,7 +376,8 @@ function render() {
       }
       a.querySelector('textarea').focus();
     };
-    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i); };
+    div.querySelector('.lock-btn').onclick = e => { e.stopPropagation(); toggleLock(i); };
+    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false) return; if (confirm(`刪除「${text}」？`)) del(i); };
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
@@ -381,8 +387,9 @@ function render() {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
-function del(i) { const d=cache[dk(currentDate)]; if(!d) return; d.items.splice(i,1); render(); scheduleSave(); }
-function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:""}); render(); scheduleSave(); }
+function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; if(d.items[i].locked!==false) return; d.items.splice(i,1); render(); scheduleSave(); }
+function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
+function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 
 function getHistoryNotes(idx) {
   const today = currentDate;

@@ -198,8 +198,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 let authReady = false;
+let authWaitResolve;
+const authWaiter = new Promise(r => { authWaitResolve = r; });
 signInAnonymously(auth).catch(e => console.warn('Anon auth:', e));
-onAuthStateChanged(auth, user => { authReady = true; if (user) setStatus(true); });
+onAuthStateChanged(auth, user => {
+  authReady = true;
+  authWaitResolve();
+  if (user) setStatus(true);
+});
+async function waitAuth() {
+  if (!authReady) await authWaiter;
+}
 
 const DEFAULT_NAMES = ["陳冠宇","姜艾陵","曾文欽","陳淑鳳","呂桓毅","陳有德","范育誠","鄭子韋","康必達","陳育徵","邵玥秞","呂秀娟","林于修","王信淵","蘇素茹","李國珍","王嬿翔","洪國城","劉子榕","胡哲強"];
 
@@ -584,8 +593,9 @@ async function doLogin() {
   if (!key) return;
   const pw = document.getElementById('loginPw').value;
   boardKey = key;
+  await waitAuth();
   const data = await loadDoc();
-  const stored = data._pwHash || localStorage.getItem('dashboard_pw_' + key);
+  const stored = data._pwHash;
   if (stored) {
     const entered = pw ? await hashPw(pw) : '';
     if (entered !== stored) {
@@ -632,12 +642,22 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && boa
 if (boardKey) {
   const pwHash = localStorage.getItem('dashboard_pw_' + boardKey);
   if (pwHash) {
-    // Have saved password hash - try direct login
-    document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
-    loadDay(boardKey, dk(currentDate));
-    preloadRecent(boardKey);
+    // Have saved password hash - do full login silently
+    (async () => {
+      await waitAuth();
+      const data = await loadDoc();
+      const storedHash = data._pwHash;
+      if (!storedHash) {
+        // Restore _pwHash to Firestore from localStorage
+        const ref = doc(db, "dashboard", boardKey);
+        await setDoc(ref, { _pwHash: pwHash }, { merge: true });
+      }
+      document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      loadDay(boardKey, dk(currentDate));
+      preloadRecent(boardKey);
+    })();
   } else {
     // Need password - show login screen with name filled
     document.getElementById('loginKey').value = boardKey;

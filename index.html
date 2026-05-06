@@ -140,9 +140,23 @@
   </div>
 </div>
 
-<script>
-// === Config ===
-const API_BASE = localStorage.getItem('dashboard_api_url') || 'http://localhost:5000';
+<script type="module">
+// === Firebase Config ===
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRazQsleeT4H4Nt6VrqI1KGlfVenc",
+  authDomain: "bentodish-alan.firebaseapp.com",
+  projectId: "bentodish-alan",
+  storageBucket: "bentodish-alan.firebasestorage.app",
+  messagingSenderId: "652937239500",
+  appId: "1:652937239500:web:2c4c3b28b2311f2b12db69"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const DEFAULTS = ['早起後不碰手機，先喝水','每天讀 10 頁紙本書','寫三句話日記','整理一個空間（10分鐘）','做 10 分鐘運動','學一個小技能','和一個人深度聊天','記錄當天最大一筆開支','睡前寫下明天要做的事'];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -153,19 +167,19 @@ let saveTimer = null;
 function dk(d) { return d.toISOString().slice(0,10); }
 function today() { return dk(new Date()); }
 
-async function api(method, path, body) {
-  const opts = { method, headers: {'Content-Type':'application/json'} };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(API_BASE + path, opts);
-  if (!r.ok) throw new Error(r.statusText);
-  return r.json();
-}
-
+// === Firestore Operations ===
 async function loadDay(key, dateStr) {
   try {
-    const r = await api('GET', `/api/data/${key}/${dateStr}`);
-    if (r.data && r.data.items) {
-      cache[dateStr] = { items: r.data.items, done: r.data.done || new Array(r.data.items.length).fill(false) };
+    const ref = doc(db, "dashboard", key);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      const dayData = data[dateStr];
+      if (dayData && dayData.items) {
+        cache[dateStr] = { items: dayData.items, done: dayData.done || new Array(dayData.items.length).fill(false) };
+      } else {
+        cache[dateStr] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
+      }
     } else {
       cache[dateStr] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
     }
@@ -182,7 +196,12 @@ async function saveDay(key, dateStr) {
   const day = cache[dateStr];
   if (!day) return;
   try {
-    await api('PUT', `/api/data/${key}/${dateStr}`, day);
+    const ref = doc(db, "dashboard", key);
+    // Read current doc or create new
+    const snap = await getDoc(ref);
+    const existing = snap.exists() ? snap.data() : {};
+    existing[dateStr] = { items: day.items, done: day.done };
+    await setDoc(ref, existing);
     setStatus(true);
   } catch(e) {
     console.warn('Save failed:', e);
@@ -196,17 +215,32 @@ function scheduleSave() {
 }
 
 async function preloadRecent(key) {
+  // Load the full document once - contains ALL days
+  try {
+    const ref = doc(db, "dashboard", key);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      // Merge into cache
+      for (const [ds, dayData] of Object.entries(data)) {
+        if (dayData && dayData.items) {
+          cache[ds] = { items: dayData.items, done: dayData.done || new Array(dayData.items.length).fill(false) };
+        }
+      }
+    }
+    setStatus(true);
+  } catch(e) {
+    console.warn('Preload failed:', e);
+    setStatus(false);
+  }
+  // Fill missing days with defaults
   const today2 = new Date();
-  for (let i = 1; i < 90; i++) {
+  for (let i = 0; i < 90; i++) {
     const d = new Date(today2);
     d.setDate(d.getDate() - i);
     const ds = dk(d);
     if (!cache[ds]) {
-      try {
-        const r = await api('GET', `/api/data/${key}/${ds}`);
-        if (r.data && r.data.items) cache[ds] = { items: r.data.items, done: r.data.done || new Array(r.data.items.length).fill(false) };
-        else cache[ds] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
-      } catch(e) { cache[ds] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) }; }
+      cache[ds] = { items: [...DEFAULTS], done: new Array(DEFAULTS.length).fill(false) };
     }
   }
   renderHeatmap();

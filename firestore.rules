@@ -1,17 +1,48 @@
-// 每日儀表板 Firestore 安全規則
-// 使用 key 作為文檔 ID 前綴，任何人知道 key 就能讀寫
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 儀表板資料：以 boardKey_date 為 document ID
-    match /dashboards/{docId} {
-      allow read, write: if true;
+    
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email in ['alansnoopy@gmail.com', 'alansnoopy@gmail.com'];
     }
     
-    // 拒絕其他 collection
-    match /{document=**} {
-      allow read, write: if false;
+    function isOwner(resourceData) {
+      return request.auth != null && request.auth.uid == resourceData.uid;
+    }
+
+    match /bento_combinations/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin() || isOwner(resource.data);
+    }
+    
+    match /bento_photos/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin() || isOwner(resource.data);
+    }
+
+    match /table_combinations/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin() || isOwner(resource.data);
+    }
+
+    match /table_photos/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin() || isOwner(resource.data);
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.authorUid;
+    }
+
+    // Dashboard data - allow all read/write (no auth required)
+    match /dashboard/{document=**} {
+      allow read, write: if true;
     }
   }
 }

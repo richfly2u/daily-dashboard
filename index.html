@@ -395,7 +395,7 @@ function render() {
       e.stopPropagation();
       const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return;
       const item=d.items[i];
-      if (item.locked) return;
+      if (item.locked && !editMode) return;
       const textSpan = div.querySelector('.item-text');
       if (!textSpan || textSpan.tagName==='INPUT') return;
       const isNp = item.type === 'name-picker';
@@ -416,7 +416,7 @@ function render() {
       inp.onblur = save;
       inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
     };
-    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false) return; if (confirm(`刪除「${text}」？`)) del(i); };
+    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false && !editMode) return; if (confirm(`刪除「${text}」？`)) del(i); };
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {

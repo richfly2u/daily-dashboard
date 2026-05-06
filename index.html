@@ -201,8 +201,8 @@ const DEFAULTS = [
   {text:"學一個小技能",type:"text",locked:true},
   {text:"和一個人深度聊天",type:"text",locked:true},
   {text:"記錄當天最大一筆開支",type:"text",locked:true},
-  {text:"睡前寫下明天要做的事",type:"text",locked:true},
-  {text:"成全對象",type:"name-picker",selected:"",locked:true}
+  {text:"成全對象",type:"name-picker",selected:"",locked:true},
+  {text:"睡前寫下明天要做的事",type:"text",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -265,14 +265,18 @@ async function loadDay(key, dateStr) {
     // Migrate existing items: if DEFAULTS says name-picker but stored item is text, upgrade it
     // Also update text if DEFAULTS text differs (e.g. "值班人員" → "成全對象")
     DEFAULTS.forEach((def, j) => {
-      if (def.type === 'name-picker' && j < migrated.length) {
-        if (migrated[j].type !== 'name-picker') {
-          migrated[j].type = 'name-picker';
-          migrated[j].selected = migrated[j].selected || '';
-        }
-        // Set default text only if empty (user can customize)
-        if (!migrated[j].text) migrated[j].text = def.text;
+      if (j >= migrated.length) return;
+      if (def.type === 'name-picker' && migrated[j].type !== 'name-picker') {
+        migrated[j].type = 'name-picker';
+        migrated[j].selected = migrated[j].selected || '';
       }
+      // Reverse: if DEFAULTS says text but stored is name-picker (item moved), downgrade
+      if (def.type === 'text' && migrated[j].type === 'name-picker') {
+        migrated[j].type = 'text';
+        delete migrated[j].selected;
+      }
+      // Set default text only if empty (user can customize)
+      if (!migrated[j].text) migrated[j].text = def.text;
     });
     cache[dateStr] = { items: migrated };
   } else {

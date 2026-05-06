@@ -107,7 +107,10 @@
   .check-item .edit-btn, .check-item .del-btn { display: none; }
   .edit-mode .edit-btn, .edit-mode .del-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
-  .edit-mode .del-btn { opacity: 0.5 !important; }
+  .edit-mode .del-btn { opacity: 0.8 !important; }
+  /* In edit mode, blur right-side buttons (lock, note) */
+  .edit-mode .lock-btn, .edit-mode .note-btn { opacity: 0.15; pointer-events: none; filter: blur(2px); }
+  .edit-mode .cb { pointer-events: none; }
   .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #282838; border-top-color: #6c5ce7; border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (max-width: 480px) { .app { padding: 16px 12px 32px; } }
@@ -361,10 +364,9 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}` +
+    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `<button class="note-btn" data-idx="${i}">📝</button>` +
-      `<button class="del-btn" data-idx="${i}">✕</button>` +
       `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
     div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {

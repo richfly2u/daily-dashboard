@@ -231,9 +231,14 @@ async function loadDay(key, dateStr) {
   nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
-    cache[dateStr] = { items: dayData.items.map(i => typeof i === 'string'
+    let migrated = dayData.items.map(i => typeof i === 'string'
       ? {text:i,type:"text",done:false,selected:"",notes:""}
-      : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||""}) };
+      : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||""});
+    // Append missing default items (e.g. new name-picker)
+    for (let j = migrated.length; j < DEFAULTS.length; j++) {
+      migrated.push({...DEFAULTS[j], done:false, selected:DEFAULTS[j].selected||"", notes:""});
+    }
+    cache[dateStr] = { items: migrated };
   } else {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
@@ -266,6 +271,11 @@ async function preloadRecent(key) {
       cache[ds] = { items: dayData.items.map(i => typeof i === 'string'
         ? {text:i,type:"text",done:false,selected:"",notes:""}
         : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||""}) };
+      // Append missing defaults
+      const mi = cache[ds].items;
+      for (let j = mi.length; j < DEFAULTS.length; j++) {
+        mi.push({...DEFAULTS[j], done:false, selected:DEFAULTS[j].selected||"", notes:""});
+      }
     }
   }
   const today2 = new Date();

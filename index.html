@@ -49,7 +49,7 @@
   .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #a855f7); border-radius: 3px; transition: width .5s ease; }
 
   .checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-  .check-item { background: #1a1a24; border-radius: 12px; padding: 0 12px 0 6px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .check-item { background: #1a1a24; border-radius: 12px; padding: 0 12px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; cursor: pointer; }
   .check-item.done { opacity: 0.7; }
   .check-item.done .item-text { text-decoration: line-through; color: #666; }
   .check-item .cb { width: 22px; height: 22px; border: 2px solid #444; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
@@ -63,7 +63,7 @@
   .check-item .del-btn { background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; }
   .check-item:hover .del-btn { opacity: 1; }
   .check-item .item-num { color: #555; font-size: 12px; font-weight: 600; width: 20px; text-align: center; flex-shrink: 0; }
-  .note-area { display: none; padding: 8px 8px 10px; margin-top: 4px; }
+  .note-area { display: none; width: 100%; padding: 4px 4px 10px; flex-shrink: 0; }
   .note-area.open { display: block; }
   .note-area textarea { width: 100%; background: #0f0f13; border: 1px solid #282838; border-radius: 8px; padding: 10px 12px; color: #aaa; font-size: 13px; font-family: inherit; outline: none; resize: vertical; min-height: 80px; }
   .note-area textarea:focus { border-color: #6c5ce7; color: #e8e8ed; }

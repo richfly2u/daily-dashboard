@@ -57,6 +57,11 @@
   .check-item .item-text { flex: 1; padding: 12px 0; font-size: 14px; }
   .check-item .lock-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0.5; flex-shrink: 0; }
   .check-item:hover .lock-btn { opacity: 1; }
+  .check-item .edit-btn { background: none; border: none; color:#555; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0; flex-shrink: 0; }
+  .check-item:hover .edit-btn { opacity: 0.4; }
+  .check-item.unlocked .edit-btn { opacity: 0.6; }
+  .check-item .edit-btn:hover { opacity: 1; color:#fbbf24; }
+  .check-item .item-text-input { flex:1; background:#0f0f13; border:1px solid #6c5ce7; border-radius:6px; padding:6px 10px; color:#e8e8ed; font-size:14px; font-family:inherit; outline:none; min-width:0; }
   .check-item .note-btn { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0.4; flex-shrink: 0; }
   .check-item:hover .note-btn, .check-item.has-note .note-btn { opacity: 1; }
   .check-item.has-note .note-btn { color: #a78bfa; }
@@ -349,6 +354,7 @@ function render() {
     const locked = item.locked !== false;
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
+      `<button class="edit-btn" data-idx="${i}"${locked || item.type==='name-picker'?' style="display:none"':''}>✏️</button>` +
       `<button class="note-btn" data-idx="${i}">📝</button>` +
       `<button class="del-btn" data-idx="${i}"${locked?' style="display:none"':''}>✕</button>` +
       `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
@@ -377,6 +383,28 @@ function render() {
       a.querySelector('textarea').focus();
     };
     div.querySelector('.lock-btn').onclick = e => { e.stopPropagation(); toggleLock(i); };
+    div.querySelector('.edit-btn').onclick = e => {
+      e.stopPropagation();
+      const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return;
+      const item=d.items[i];
+      if (item.locked) return;
+      const textSpan = div.querySelector('.item-text');
+      if (!textSpan || textSpan.tagName==='INPUT') return;
+      const inp = document.createElement('input');
+      inp.type='text'; inp.className='item-text-input'; inp.value=item.text;
+      inp.maxLength=60;
+      textSpan.replaceWith(inp);
+      inp.focus(); inp.select();
+      const save = () => {
+        const v = inp.value.trim();
+        if (v && v !== item.text) { item.text = v; scheduleSave(); }
+        const span = document.createElement('span'); span.className='item-text'; span.textContent=v||item.text;
+        inp.replaceWith(span);
+        if (item.type !== 'name-picker') span.onclick = () => toggle(i);
+      };
+      inp.onblur = save;
+      inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
+    };
     div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false) return; if (confirm(`刪除「${text}」？`)) del(i); };
     list.appendChild(div);
   });

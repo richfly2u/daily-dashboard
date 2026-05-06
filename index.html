@@ -367,10 +367,11 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
+    const hasNoteBtn = i !== 0;
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
-      `<button class="note-btn" data-idx="${i}">📝</button>` +
-      `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
+      (hasNoteBtn ? `<button class="note-btn" data-idx="${i}">📝</button>` : '') +
+      (hasNoteBtn ? `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>` : '');
     div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {
       div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
@@ -382,7 +383,8 @@ function render() {
       if (s) s.textContent = this.value || '未選';
       scheduleSave();
     };
-    div.querySelector('.note-btn').onclick = (e) => {
+    const noteBtn = div.querySelector('.note-btn');
+    if (noteBtn) noteBtn.onclick = (e) => {
       e.stopPropagation();
       const a=document.getElementById('noteArea'+i); a.classList.toggle('open');
       const hDiv = document.getElementById('noteHistory' + i);

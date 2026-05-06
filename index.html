@@ -65,6 +65,12 @@
   .note-area.open { display: block; }
   .note-area textarea { width: 100%; background: #0f0f13; border: 1px solid #282838; border-radius: 8px; padding: 8px 10px; color: #aaa; font-size: 12px; font-family: inherit; outline: none; resize: vertical; min-height: 40px; max-height: 120px; }
   .note-area textarea:focus { border-color: #6c5ce7; color: #e8e8ed; }
+  .note-history { margin-bottom: 6px; max-height: 80px; overflow-y: auto; }
+  .nh-item { font-size: 11px; color: #666; padding: 3px 0; border-bottom: 1px solid #1a1a2e; display: flex; gap: 6px; align-items: flex-start; }
+  .nh-date { color: #888; white-space: nowrap; font-weight: 600; min-width: 40px; }
+  .nh-person { color: #a78bfa; font-size: 11px; }
+  .nh-text { color: #777; word-break: break-word; }
+  .nh-empty { font-size: 11px; color: #444; font-style: italic; }
   .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
   .add-wrap input { flex: 1; background: #1a1a24; border: 1px solid #282838; border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; }
   .add-wrap input:focus { border-color: #6c5ce7; }
@@ -333,12 +339,14 @@ function render() {
         nameList.map(n => `<option value="${esc(n)}"${n===sel?' selected':''}>${esc(n)}</option>`).join('') +
         `</select>` +
         `<span class="item-selected" data-idx="${i}">${sel ? esc(sel) : '未選'}</span>`;
+      var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
+      var nhExtra = '';
     }
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
       `<button class="note-btn" data-idx="${i}">📝</button><button class="del-btn" data-idx="${i}">✕</button>` +
-      `<div class="note-area${notes?' open':''}" id="noteArea${i}"><textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
+      `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;
     div.querySelector('.cb').onclick = () => toggle(i);
     if (item.type !== 'name-picker') {
       div.querySelector('.item-text').onclick = () => toggle(i);
@@ -353,6 +361,14 @@ function render() {
     div.querySelector('.note-btn').onclick = (e) => {
       e.stopPropagation();
       const a=document.getElementById('noteArea'+i); a.classList.toggle('open');
+      const hDiv = document.getElementById('noteHistory' + i);
+      if (hDiv) {
+        const h = getHistoryNotes(i);
+        hDiv.innerHTML = !h.length ? '<div class="nh-empty">前兩天無記錄</div>'
+          : h.map(x => '<div class="nh-item"><span class="nh-date">' + esc(x.date) + '</span>'
+            + (x.selected ? '<span class="nh-person">👤' + esc(x.selected) + '</span>' : '')
+            + '<span class="nh-text">' + esc(x.notes) + '</span></div>').join('');
+      }
       a.querySelector('textarea').focus();
     };
     div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i); };
@@ -367,6 +383,20 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
 function del(i) { const d=cache[dk(currentDate)]; if(!d) return; d.items.splice(i,1); render(); scheduleSave(); }
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:""}); render(); scheduleSave(); }
+
+function getHistoryNotes(idx) {
+  const today = currentDate;
+  const out = [];
+  for (let o = 1; o <= 2; o++) {
+    const d = new Date(today); d.setDate(d.getDate() - o);
+    const ds = dk(d);
+    const day = cache[ds];
+    if (day && day.items && day.items[idx] && day.items[idx].notes) {
+      out.push({ date: `${d.getMonth()+1}/${d.getDate()}`, selected: day.items[idx].selected||'', notes: day.items[idx].notes });
+    }
+  }
+  return out;
+}
 
 function renderStreak() {
   let s=0; const d2=new Date();

@@ -427,6 +427,7 @@ function render() {
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
     ta.oninput = () => { const idx=parseInt(ta.dataset.idx); const d=cache[dk(currentDate)]; if (d && d.items[idx]) d.items[idx].notes=ta.value; scheduleSave(); };
+    ta.onblur = () => { setTimeout(() => { ta.closest('.note-area').classList.remove('open'); }, 200); };
   });
 }
 

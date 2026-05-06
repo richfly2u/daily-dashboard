@@ -361,9 +361,8 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
+    div.innerHTML = `<button class="edit-btn" data-idx="${i}">✏️</button><span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
-      `<button class="edit-btn" data-idx="${i}">✏️</button>` +
       `<button class="note-btn" data-idx="${i}">📝</button>` +
       `<button class="del-btn" data-idx="${i}">✕</button>` +
       `<div class="note-area${notes?' open':''}" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea></div>`;

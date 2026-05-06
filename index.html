@@ -507,17 +507,21 @@ function renderHeatmap() {
 
 // === Name Management Dialog ===
 const dialogHTML = `
-<div id="nameDialog" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-  <div style="background:#1a1a24;border-radius:16px;padding:24px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;">
-    <h3 style="margin-bottom:16px;">👥 管理人員名單</h3>
+<div id="nameDialog" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(145deg,#1e1b2e,#1a1a24);border-radius:24px;padding:28px 24px 20px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(192,132,252,.15),inset 0 1px 0 rgba(255,255,255,.06);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:32px;margin-bottom:4px;">🌸</div>
+      <h3 style="margin:0;font-size:18px;font-weight:700;background:linear-gradient(135deg,#f472b6,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">管理你的小夥伴</h3>
+      <p style="color:#888;font-size:12px;margin:4px 0 0;">點一下名字可以編輯 ✏️</p>
+    </div>
     <div id="nameListContainer"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <input type="text" id="newNameInput" placeholder="新增姓名..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid #282838;border-radius:8px;padding:8px 12px;color:#e8e8ed;font-size:14px;outline:none;">
-      <button id="addNameBtn" class="add-btn" style="position:static;">+</button>
+    <div style="display:flex;gap:8px;margin-top:14px;background:rgba(192,132,252,.08);border-radius:14px;padding:10px;">
+      <input type="text" id="newNameInput" placeholder="輸入新朋友的名字..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid rgba(192,132,252,.25);border-radius:10px;padding:10px 14px;color:#e8e8ed;font-size:14px;outline:none;transition:border-color .2s;">
+      <button id="addNameBtn" style="background:linear-gradient(135deg,#f472b6,#c084fc);border:none;color:white;font-size:20px;width:42px;border-radius:12px;cursor:pointer;font-weight:600;transition:transform .15s,box-shadow .2s;box-shadow:0 4px 12px rgba(192,132,252,.3);" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">+</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;">
-      <button id="closeNameDialog" style="flex:1;background:#282838;border:none;border-radius:10px;padding:10px;color:#e8e8ed;font-size:14px;cursor:pointer;">關閉</button>
-      <button id="saveNameList" style="flex:1;background:#6c5ce7;border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存名單</button>
+      <button id="closeNameDialog" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;color:#aaa;font-size:14px;cursor:pointer;transition:background .15s,color .15s;" onmouseover="this.style.background='rgba(255,255,255,.1)';this.style.color='#e8e8ed'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">🔙 返回</button>
+      <button id="saveNameList" style="flex:1;background:linear-gradient(135deg,#f472b6,#c084fc);border:none;border-radius:12px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 4px 12px rgba(192,132,252,.3);" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">💕 儲存名單</button>
     </div>
   </div>
 </div>`;
@@ -547,12 +551,16 @@ function showNameDialog() {
 function renderNameList() {
   const container = document.getElementById('nameListContainer');
   if (!container) return;
-  container.innerHTML = nameList.map((n, i) =>
-    `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #282838;">
-      <span class="name-text" data-idx="${i}" style="flex:1;font-size:14px;cursor:text;">${esc(n)}</span>
-      <button class="del-name-btn" data-idx="${i}" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
-    </div>`
-  ).join('');
+  const colors = ['#f472b6','#c084fc','#60a5fa','#34d399','#fbbf24','#fb923c','#f87171','#e879f9'];
+  container.innerHTML = nameList.length === 0
+    ? '<div style="text-align:center;padding:24px 0;"><div style="font-size:40px;margin-bottom:8px;">🫂</div><p style="color:#666;font-size:13px;">還沒有小夥伴～<br>輸入名字開始加入吧！</p></div>'
+    : nameList.map((n, i) =>
+      `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:4px;background:rgba(255,255,255,.03);border-radius:12px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='rgba(255,255,255,.03)'">
+        <span style="width:28px;height:28px;border-radius:50%;background:${colors[i%colors.length]};display:flex;align-items:center;justify-content:center;font-size:12px;color:#0f0f13;font-weight:700;flex-shrink:0;">${i+1}</span>
+        <span class="name-text" data-idx="${i}" style="flex:1;font-size:14px;cursor:pointer;padding:4px 0;">${esc(n)}</span>
+        <button class="del-name-btn" data-idx="${i}" style="background:none;border:none;color:rgba(239,68,68,.5);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:color .15s,background .15s;" onmouseover="this.style.color='#ef4444';this.style.background='rgba(239,68,68,.1)'" onmouseout="this.style.color='rgba(239,68,68,.5)';this.style.background='none'">✕</button>
+      </div>`
+    ).join('');
   container.querySelectorAll('.name-text').forEach(span => {
     span.onclick = () => {
       const idx = parseInt(span.dataset.idx);
@@ -701,6 +709,10 @@ async function doLogin() {
   document.getElementById('mainApp').style.display = 'block';
   await loadDay(boardKey, dk(currentDate));
   preloadRecent(boardKey);
+  // First-login tip for non-alan boards
+  if (key !== 'alan' && !data._names && !pw) {
+    setTimeout(() => alert('💡 你可以按「👥 名單管理」自行新增「今天成全了誰？」的人員姓名'), 500);
+  }
 }
 
 document.getElementById('prevDay').onclick = () => { currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };

@@ -223,7 +223,7 @@ const DEFAULTS = [
   {text:"和一個人深度聊天",type:"text",locked:true},
   {text:"記錄當天最大一筆開支",type:"text",locked:true},
   {text:"睡前寫下明天要做的事",type:"text",locked:true},
-  {text:"今天成全了誰？",type:"name-picker",selected:"",locked:true}
+  {text:"今天成全關心了誰？",type:"name-picker",selected:"",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -380,7 +380,7 @@ function render() {
     if (item.type === 'name-picker') {
       if (!item.selected) item.selected = getTodayPerson();
       const todayName = item.selected || '?';
-      extraHTML = `<span class="item-text">👤 今天成全了 <strong>${esc(todayName)}</strong> 了嗎？</span>`;
+      extraHTML = `<span class="item-text">👤 今天成全關心了 <strong>${esc(todayName)}</strong> 了嗎？</span>`;
       var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
@@ -711,7 +711,7 @@ async function doLogin() {
   preloadRecent(boardKey);
   // First-login tip for non-alan boards
   if (key !== 'alan' && !data._names && !pw) {
-    setTimeout(() => alert('💡 你可以按「👥 名單管理」自行新增「今天成全了誰？」的人員姓名'), 500);
+    setTimeout(() => alert('💡 你可以按「👥 名單管理」自行新增「今天成全關心了誰？」的人員姓名'), 500);
   }
 }
 

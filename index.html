@@ -125,10 +125,12 @@
 <div class="login-screen" id="loginScreen">
   <div style="font-size:48px;margin-bottom:16px;">📋</div>
   <h2>每日行動儀表板</h2>
-  <p>輸入儀表板名稱</p>
+  <p>輸入儀表板名稱與密碼</p>
   <input type="text" id="loginKey" placeholder="alan" maxlength="20" autocomplete="off">
+  <input type="password" id="loginPw" placeholder="密碼" maxlength="20" style="background:#1a1a24;border:1px solid #282838;border-radius:12px;padding:14px 18px;color:#e8e8ed;font-size:18px;text-align:center;outline:none;width:200px;margin-top:8px;">
   <button class="login-btn" id="loginBtn">進入</button>
-  <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
+  <p class="hint">💡 不同裝置用同一個名稱+密碼就會自動同步</p>
+  <p id="pwError" style="color:#ef4444;font-size:13px;margin-top:8px;display:none;">⚠️ 密碼錯誤</p>
 </div>
 
 <div class="app" id="mainApp" style="display:none">
@@ -565,11 +567,34 @@ function renderNameList() {
 
 // === Events ===
 document.getElementById('loginBtn').onclick = () => doLogin();
-document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') doLogin(); };
+document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') document.getElementById('loginPw').focus(); };
+document.getElementById('loginPw').onkeydown = e => { if (e.key==='Enter') doLogin(); };
+async function hashPw(pw) {
+  const data = new TextEncoder().encode(pw);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 async function doLogin() {
   const key = document.getElementById('loginKey').value.trim().toLowerCase();
   if (!key) return;
+  const pw = document.getElementById('loginPw').value;
   boardKey = key;
+  const data = await loadDoc();
+  const stored = data._pwHash || localStorage.getItem('dashboard_pw_' + key);
+  if (stored) {
+    const entered = pw ? await hashPw(pw) : '';
+    if (entered !== stored) {
+      document.getElementById('pwError').style.display = 'block';
+      return;
+    }
+  } else if (pw) {
+    // First time with password - store it
+    const hash = await hashPw(pw);
+    const ref = doc(db, "dashboard", boardKey);
+    await setDoc(ref, { _pwHash: hash, _names: nameList }, { merge: true });
+    localStorage.setItem('dashboard_pw_' + key, hash);
+  }
+  document.getElementById('pwError').style.display = 'none';
   localStorage.setItem('dashboard_key', boardKey);
   document.getElementById('boardName').textContent = key + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
@@ -595,16 +620,24 @@ document.getElementById('resetBtn').onclick = () => {
   const ds=dk(currentDate); cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
   if (boardKey) saveCurrentDay();
 };
-document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
+document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); const oldKey = boardKey; boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; document.getElementById('loginPw').value=''; document.getElementById('pwError').style.display='none'; };
 document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveCurrentDay(); });
 
 // Auto-login
 if (boardKey) {
-  document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-  loadDay(boardKey, dk(currentDate));
-  preloadRecent(boardKey);
+  const pwHash = localStorage.getItem('dashboard_pw_' + boardKey);
+  if (pwHash) {
+    // Have saved password hash - try direct login
+    document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    loadDay(boardKey, dk(currentDate));
+    preloadRecent(boardKey);
+  } else {
+    // Need password - show login screen with name filled
+    document.getElementById('loginKey').value = boardKey;
+    document.getElementById('loginPw').focus();
+  }
 }
 </script>
 </body>

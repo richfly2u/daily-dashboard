@@ -24,29 +24,29 @@
   .login-screen p { color: #888; font-size: 14px; margin-bottom: 24px; }
   .login-screen input { background: #1a1a24; border: 1px solid #282838; border-radius: 12px; padding: 14px 18px; color: #e8e8ed; font-size: 18px; text-align: center; outline: none; width: 200px; }
   .login-screen input:focus { border-color: #6c5ce7; }
-  .login-screen .login-btn { background: #6c5ce7; border: none; color: white; padding: 12px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background .15s ease; }
-  .login-screen .login-btn:hover { background: #7c6cf7; }
+  .login-screen .login-btn { background: linear-gradient(135deg, #6c5ce7, #a855f7); border: none; color: white; padding: 12px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
   .login-screen .hint { color: #555; font-size: 12px; margin-top: 16px; }
 
-  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: #f59e0b; padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; }
+  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; }
   .date-nav { display: flex; align-items: center; justify-content: space-between; background: #1a1a24; border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; }
   .date-nav .date-label { font-size: 16px; font-weight: 600; }
   .date-nav .date-label .weekday { color: #888; font-weight: 400; font-size: 13px; margin-left: 6px; }
-  .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: color .15s ease, background .15s ease; }
-  .date-nav button:hover { color: #e8e8ed; background: #282838; }
-  .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; transition: background .15s ease; }
-  .date-nav .today-btn:hover { background: #282838; }
+  .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+  .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
   .stat-card { background: #1a1a24; border-radius: 14px; padding: 14px; text-align: center; }
-  .stat-card .num { font-size: 24px; font-weight: 700; color: #a78bfa; }
+  .stat-card .num { font-size: 24px; font-weight: 700; }
   .stat-card .label { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .num.green { color: #34d399; }
+  .stat-card .num.blue { color: #60a5fa; }
+  .stat-card .num.purple { color: #a78bfa; }
 
   .progress-wrap { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 24px; }
   .progress-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
   .progress-top .pct { font-weight: 700; color: #6c5ce7; }
   .progress-bar { height: 6px; background: #282838; border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; width: 0%; background: #6c5ce7; border-radius: 3px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #a855f7); border-radius: 3px; transition: width .5s ease; }
 
   .checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
   .check-item { background: #1a1a24; border-radius: 12px; padding: 0 12px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; cursor: pointer; }
@@ -80,8 +80,7 @@
   .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
   .add-wrap input { flex: 1; background: #1a1a24; border: 1px solid #282838; border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; }
   .add-wrap input:focus { border-color: #6c5ce7; }
-  .add-wrap .add-btn { background: #6c5ce7; border: none; color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: background .15s ease; }
-  .add-wrap .add-btn:hover { background: #7c6cf7; }
+  .add-wrap .add-btn { background: #6c5ce7; border: none; color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; }
 
   .heatmap-section { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 20px; }
   .heatmap-section h3 { font-size: 13px; color: #888; margin-bottom: 12px; }
@@ -98,13 +97,12 @@
   .heatmap-legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
 
   .footer-actions { display: flex; justify-content: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-  .footer-btn { background: none; border: none; color: #555; font-size: 12px; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: color .15s ease, background .15s ease; }
-  .footer-btn:hover { color: #e8e8ed; background: #1a1a24; }
+  .footer-btn { background: none; border: none; color: #555; font-size: 12px; cursor: pointer; padding: 8px 12px; border-radius: 8px; }
   .name-select { background: #0f0f13; border: 1px solid #444; border-radius: 6px; color: #e8e8ed; font-size: 12px; padding: 4px 6px; flex-shrink: 0; max-width: 90px; cursor: pointer; }
   .name-select:focus { border-color: #6c5ce7; }
   .item-selected { color: #a78bfa; font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 36px; }
   .item-text.name-picker { flex: none; min-width: 70px; }
-  .edit-bar { display: flex; justify-content: center; margin-bottom: 12px; }
+  .edit-bar { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); z-index: 100; display: flex; justify-content: center; }
   .edit-bar .edit-toggle { background: none; border: 1px solid #444; color: #888; font-size: 13px; padding: 6px 18px; border-radius: 20px; cursor: pointer; transition: all .2s; }
   .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; }
   .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 600; }
@@ -125,12 +123,10 @@
 <div class="login-screen" id="loginScreen">
   <div style="font-size:48px;margin-bottom:16px;">📋</div>
   <h2>每日行動儀表板</h2>
-  <p>輸入儀表板名稱與密碼</p>
+  <p>輸入儀表板名稱</p>
   <input type="text" id="loginKey" placeholder="alan" maxlength="20" autocomplete="off">
-  <input type="password" id="loginPw" placeholder="密碼" maxlength="20" style="background:#1a1a24;border:1px solid #282838;border-radius:12px;padding:14px 18px;color:#e8e8ed;font-size:18px;text-align:center;outline:none;width:200px;margin-top:8px;">
   <button class="login-btn" id="loginBtn">進入</button>
-  <p class="hint">💡 不同裝置用同一個名稱+密碼就會自動同步</p>
-  <p id="pwError" style="color:#ef4444;font-size:13px;margin-top:8px;display:none;">⚠️ 密碼錯誤</p>
+  <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
 </div>
 
 <div class="app" id="mainApp" style="display:none">
@@ -149,9 +145,9 @@
   </div>
 
   <div class="stats">
-    <div class="stat-card"><div class="num" id="doneCount">0</div><div class="label">已完成</div></div>
-    <div class="stat-card"><div class="num" id="totalCount">0</div><div class="label">總項目</div></div>
-    <div class="stat-card"><div class="num" id="rateCount">0%</div><div class="label">完成率</div></div>
+    <div class="stat-card"><div class="num blue" id="doneCount">0</div><div class="label">已完成</div></div>
+    <div class="stat-card"><div class="num green" id="totalCount">0</div><div class="label">總項目</div></div>
+    <div class="stat-card"><div class="num purple" id="rateCount">0%</div><div class="label">完成率</div></div>
   </div>
 
   <div class="progress-wrap">
@@ -177,7 +173,6 @@
   <div class="footer-actions">
     <button class="footer-btn" id="resetBtn">🗑️ 重置今天</button>
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
-    <button class="footer-btn" id="authBoardBtn" style="display:none">📋 開放板管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
 </div>
@@ -185,7 +180,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRazQsleeT4H4Nt6VrqI1KGlfVenc",
@@ -197,19 +191,6 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-let authReady = false;
-let authWaitResolve;
-const authWaiter = new Promise(r => { authWaitResolve = r; });
-signInAnonymously(auth).catch(e => console.warn('Anon auth:', e));
-onAuthStateChanged(auth, user => {
-  authReady = true;
-  authWaitResolve();
-  if (user) setStatus(true);
-});
-async function waitAuth() {
-  if (!authReady) await authWaiter;
-}
 
 const DEFAULT_NAMES = ["陳冠宇","姜艾陵","曾文欽","陳淑鳳","呂桓毅","陳有德","范育誠","鄭子韋","康必達","陳育徵","邵玥秞","呂秀娟","林于修","王信淵","蘇素茹","李國珍","王嬿翔","洪國城","劉子榕","胡哲強"];
 
@@ -223,7 +204,7 @@ const DEFAULTS = [
   {text:"和一個人深度聊天",type:"text",locked:true},
   {text:"記錄當天最大一筆開支",type:"text",locked:true},
   {text:"睡前寫下明天要做的事",type:"text",locked:true},
-  {text:"今天成全關心了誰？",type:"name-picker",selected:"",locked:true}
+  {text:"今天成全了誰？",type:"name-picker",selected:"",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -260,7 +241,7 @@ async function saveDoc(extra) {
   try {
     const ref = doc(db, "dashboard", boardKey);
     const data = await loadDoc();
-    const names = nameList.length ? nameList : (boardKey === 'alan' ? DEFAULT_NAMES : []);
+    const names = nameList.length ? nameList : DEFAULT_NAMES;
     data._names = names;
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
@@ -273,7 +254,7 @@ async function saveDoc(extra) {
 
 async function loadDay(key, dateStr) {
   const data = await loadDoc();
-  nameList = data._names && data._names.length ? data._names : (boardKey === 'alan' ? DEFAULT_NAMES : []);
+  nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -311,7 +292,7 @@ async function saveCurrentDay() {
   if (!day) return;
   const data = await loadDoc();
   data[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
-  data._names = nameList.length ? nameList : (boardKey === 'alan' ? DEFAULT_NAMES : []);
+  data._names = nameList.length ? nameList : DEFAULT_NAMES;
   try {
     await setDoc(doc(db, "dashboard", boardKey), data);
     setStatus(true);
@@ -325,7 +306,7 @@ function scheduleSave() {
 
 async function preloadRecent(key) {
   const data = await loadDoc();
-  nameList = data._names && data._names.length ? data._names : (boardKey === 'alan' ? DEFAULT_NAMES : []);
+  nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
   for (const [ds, dayData] of Object.entries(data)) {
     if (ds === '_names') continue;
     if (dayData && dayData.items) {
@@ -380,17 +361,16 @@ function render() {
     if (item.type === 'name-picker') {
       if (!item.selected) item.selected = getTodayPerson();
       const todayName = item.selected || '?';
-      extraHTML = `<span class="item-text">👤 今天成全關心了 <strong>${esc(todayName)}</strong> 了嗎？</span>`;
+      extraHTML = `<span class="item-text">👤 今天成全了 <strong>${esc(todayName)}</strong> 了嗎？</span>`;
       var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    const hasNoteBtn = i !== 0;
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
-      (hasNoteBtn ? `<button class="note-btn" data-idx="${i}">📝</button>` : '') +
-      (hasNoteBtn ? `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>` : '');
+      `<button class="note-btn" data-idx="${i}">📝</button>` +
+      `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
     div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {
       div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
@@ -402,8 +382,7 @@ function render() {
       if (s) s.textContent = this.value || '未選';
       scheduleSave();
     };
-    const noteBtn = div.querySelector('.note-btn');
-    if (noteBtn) noteBtn.onclick = (e) => {
+    div.querySelector('.note-btn').onclick = (e) => {
       e.stopPropagation();
       const a=document.getElementById('noteArea'+i); a.classList.toggle('open');
       const hDiv = document.getElementById('noteHistory' + i);
@@ -507,21 +486,17 @@ function renderHeatmap() {
 
 // === Name Management Dialog ===
 const dialogHTML = `
-<div id="nameDialog" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
-  <div style="background:linear-gradient(145deg,#1e1b2e,#1a1a24);border-radius:24px;padding:28px 24px 20px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(192,132,252,.15),inset 0 1px 0 rgba(255,255,255,.06);">
-    <div style="text-align:center;margin-bottom:20px;">
-      <div style="font-size:32px;margin-bottom:4px;">🌸</div>
-      <h3 style="margin:0;font-size:18px;font-weight:700;background:linear-gradient(135deg,#f472b6,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">管理你的小夥伴</h3>
-      <p style="color:#888;font-size:12px;margin:4px 0 0;">點一下名字可以編輯 ✏️</p>
-    </div>
+<div id="nameDialog" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:#1a1a24;border-radius:16px;padding:24px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:16px;">👥 管理人員名單</h3>
     <div id="nameListContainer"></div>
-    <div style="display:flex;gap:8px;margin-top:14px;background:rgba(192,132,252,.08);border-radius:14px;padding:10px;">
-      <input type="text" id="newNameInput" placeholder="輸入新朋友的名字..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid rgba(192,132,252,.25);border-radius:10px;padding:10px 14px;color:#e8e8ed;font-size:14px;outline:none;transition:border-color .2s;">
-      <button id="addNameBtn" style="background:linear-gradient(135deg,#f472b6,#c084fc);border:none;color:white;font-size:20px;width:42px;border-radius:12px;cursor:pointer;font-weight:600;transition:transform .15s,box-shadow .2s;box-shadow:0 4px 12px rgba(192,132,252,.3);" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">+</button>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <input type="text" id="newNameInput" placeholder="新增姓名..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid #282838;border-radius:8px;padding:8px 12px;color:#e8e8ed;font-size:14px;outline:none;">
+      <button id="addNameBtn" class="add-btn" style="position:static;">+</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;">
-      <button id="closeNameDialog" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;color:#aaa;font-size:14px;cursor:pointer;transition:background .15s,color .15s;" onmouseover="this.style.background='rgba(255,255,255,.1)';this.style.color='#e8e8ed'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='#aaa'">🔙 返回</button>
-      <button id="saveNameList" style="flex:1;background:linear-gradient(135deg,#f472b6,#c084fc);border:none;border-radius:12px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 4px 12px rgba(192,132,252,.3);" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">💕 儲存名單</button>
+      <button id="closeNameDialog" style="flex:1;background:#282838;border:none;border-radius:10px;padding:10px;color:#e8e8ed;font-size:14px;cursor:pointer;">關閉</button>
+      <button id="saveNameList" style="flex:1;background:linear-gradient(135deg,#6c5ce7,#a855f7);border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存名單</button>
     </div>
   </div>
 </div>`;
@@ -551,16 +526,12 @@ function showNameDialog() {
 function renderNameList() {
   const container = document.getElementById('nameListContainer');
   if (!container) return;
-  const colors = ['#f472b6','#c084fc','#60a5fa','#34d399','#fbbf24','#fb923c','#f87171','#e879f9'];
-  container.innerHTML = nameList.length === 0
-    ? '<div style="text-align:center;padding:24px 0;"><div style="font-size:40px;margin-bottom:8px;">🫂</div><p style="color:#666;font-size:13px;">還沒有小夥伴～<br>輸入名字開始加入吧！</p></div>'
-    : nameList.map((n, i) =>
-      `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:4px;background:rgba(255,255,255,.03);border-radius:12px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='rgba(255,255,255,.03)'">
-        <span style="width:28px;height:28px;border-radius:50%;background:${colors[i%colors.length]};display:flex;align-items:center;justify-content:center;font-size:12px;color:#0f0f13;font-weight:700;flex-shrink:0;">${i+1}</span>
-        <span class="name-text" data-idx="${i}" style="flex:1;font-size:14px;cursor:pointer;padding:4px 0;">${esc(n)}</span>
-        <button class="del-name-btn" data-idx="${i}" style="background:none;border:none;color:rgba(239,68,68,.5);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:color .15s,background .15s;" onmouseover="this.style.color='#ef4444';this.style.background='rgba(239,68,68,.1)'" onmouseout="this.style.color='rgba(239,68,68,.5)';this.style.background='none'">✕</button>
-      </div>`
-    ).join('');
+  container.innerHTML = nameList.map((n, i) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #282838;">
+      <span class="name-text" data-idx="${i}" style="flex:1;font-size:14px;cursor:text;">${esc(n)}</span>
+      <button class="del-name-btn" data-idx="${i}" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
+    </div>`
+  ).join('');
   container.querySelectorAll('.name-text').forEach(span => {
     span.onclick = () => {
       const idx = parseInt(span.dataset.idx);
@@ -588,131 +559,19 @@ function renderNameList() {
   });
 }
 
-// === Board Authorization Dialog ===
-let authorizedBoards = [];
-async function loadAuthorized() {
-  const ref = doc(db, "dashboard", "alan");
-  const snap = await getDoc(ref);
-  authorizedBoards = snap.exists() ? (snap.data()._authorized || []) : [];
-  return authorizedBoards;
-}
-async function saveAuthorized(list) {
-  const ref = doc(db, "dashboard", "alan");
-  await setDoc(ref, { _authorized: list }, { merge: true });
-  authorizedBoards = list;
-}
-function showAuthBoardDialog() {
-  const existing = document.getElementById('authBoardDialog');
-  if (existing) { existing.style.display = 'flex'; renderAuthBoardList(); return; }
-  const html = `
-<div id="authBoardDialog" style="display:flex;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-  <div style="background:#1a1a24;border-radius:16px;padding:24px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;">
-    <h3 style="margin-bottom:16px;">📋 管理開放板</h3>
-    <p style="color:#888;font-size:13px;margin-bottom:12px;">只有列在此處的板名稱才能登入使用</p>
-    <div id="authBoardList"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <input type="text" id="newAuthBoardInput" placeholder="板名稱..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid #282838;border-radius:8px;padding:8px 12px;color:#e8e8ed;font-size:14px;outline:none;">
-      <button id="addAuthBoardBtn" class="add-btn" style="position:static;">+</button>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:16px;">
-      <button id="closeAuthBoardDialog" style="flex:1;background:#282838;border:none;border-radius:10px;padding:10px;color:#e8e8ed;font-size:14px;cursor:pointer;">關閉</button>
-      <button id="saveAuthBoardList" style="flex:1;background:#6c5ce7;border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存</button>
-    </div>
-  </div>
-</div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-  const dialog = document.getElementById('authBoardDialog');
-  document.getElementById('closeAuthBoardDialog').onclick = () => { dialog.style.display = 'none'; };
-  document.getElementById('addAuthBoardBtn').onclick = () => {
-    const inp = document.getElementById('newAuthBoardInput');
-    const n = inp.value.trim().toLowerCase();
-    if (!n || n === 'alan') return;
-    if (!authorizedBoards.includes(n)) authorizedBoards.push(n);
-    inp.value = ''; renderAuthBoardList();
-  };
-  document.getElementById('newAuthBoardInput').onkeydown = e => {
-    if (e.key === 'Enter') document.getElementById('addAuthBoardBtn').click();
-  };
-  document.getElementById('saveAuthBoardList').onclick = async () => {
-    await saveAuthorized(authorizedBoards);
-    dialog.style.display = 'none';
-  };
-  loadAuthorized().then(renderAuthBoardList);
-}
-function renderAuthBoardList() {
-  const container = document.getElementById('authBoardList');
-  if (!container) return;
-  container.innerHTML = authorizedBoards.length === 0
-    ? '<div style="color:#555;font-size:13px;padding:12px 0;text-align:center;">尚未開放任何板</div>'
-    : authorizedBoards.map(n =>
-      `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #282838;">
-        <span style="flex:1;font-size:14px;">${esc(n)}</span>
-        <button class="del-auth-btn" data-board="${n}" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
-      </div>`
-    ).join('');
-  container.querySelectorAll('.del-auth-btn').forEach(btn => {
-    btn.onclick = () => {
-      authorizedBoards = authorizedBoards.filter(b => b !== btn.dataset.board);
-      renderAuthBoardList();
-    };
-  });
-}
-
 // === Events ===
 document.getElementById('loginBtn').onclick = () => doLogin();
-document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') document.getElementById('loginPw').focus(); };
-document.getElementById('loginPw').onkeydown = e => { if (e.key==='Enter') doLogin(); };
-async function hashPw(pw) {
-  const data = new TextEncoder().encode(pw);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
+document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') doLogin(); };
 async function doLogin() {
   const key = document.getElementById('loginKey').value.trim().toLowerCase();
-  const pw = document.getElementById('loginPw').value;
   if (!key) return;
   boardKey = key;
-  await waitAuth();
-  // Check authorization: only 'alan' and boards in alan's _authorized list can log in
-  if (key !== 'alan') {
-    const masterRef = doc(db, "dashboard", "alan");
-    const masterSnap = await getDoc(masterRef);
-    const authorized = masterSnap.exists() ? (masterSnap.data()._authorized || []) : [];
-    if (!authorized.includes(key)) {
-      document.getElementById('pwError').textContent = '⚠️ 此板不存在或尚未開放';
-      document.getElementById('pwError').style.display = 'block';
-      boardKey = '';
-      return;
-    }
-  }
-  const data = await loadDoc();
-  const stored = data._pwHash;
-  if (stored) {
-    if (!pw) { document.getElementById('pwError').textContent = '⚠️ 此板需要密碼'; document.getElementById('pwError').style.display = 'block'; return; }
-    const entered = await hashPw(pw);
-    if (entered !== stored) {
-      document.getElementById('pwError').textContent = '⚠️ 密碼錯誤';
-      document.getElementById('pwError').style.display = 'block';
-      return;
-    }
-  } else if (pw) {
-    const hash = await hashPw(pw);
-    const ref = doc(db, "dashboard", boardKey);
-    await setDoc(ref, { _pwHash: hash, _names: nameList }, { merge: true });
-    localStorage.setItem('dashboard_pw_' + key, hash);
-  }
-  document.getElementById('pwError').style.display = 'none';
   localStorage.setItem('dashboard_key', boardKey);
   document.getElementById('boardName').textContent = key + ' 的儀表板';
-  document.getElementById('authBoardBtn').style.display = key === 'alan' ? '' : 'none';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   await loadDay(boardKey, dk(currentDate));
   preloadRecent(boardKey);
-  // First-login tip for non-alan boards
-  if (key !== 'alan' && !data._names && !pw) {
-    setTimeout(() => alert('💡 你可以按「👥 名單管理」自行新增「今天成全關心了誰？」的人員姓名'), 500);
-  }
 }
 
 document.getElementById('prevDay').onclick = () => { currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
@@ -721,7 +580,6 @@ document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); re
 document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
 document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };
 document.getElementById('nameListBtn').onclick = showNameDialog;
-document.getElementById('authBoardBtn').onclick = showAuthBoardDialog;
 document.getElementById('editToggle').onclick = () => {
   editMode = !editMode;
   document.getElementById('editToggle').textContent = editMode ? '✅ 完成編輯' : '✏️ 編輯項目';
@@ -733,34 +591,16 @@ document.getElementById('resetBtn').onclick = () => {
   const ds=dk(currentDate); cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
   if (boardKey) saveCurrentDay();
 };
-document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); const oldKey = boardKey; boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; document.getElementById('loginPw').value=''; document.getElementById('pwError').style.display='none'; };
+document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
 document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveCurrentDay(); });
 
 // Auto-login
 if (boardKey) {
-  const pwHash = localStorage.getItem('dashboard_pw_' + boardKey);
-  if (pwHash) {
-    // Have saved password hash - do full login silently
-    (async () => {
-      await waitAuth();
-      const data = await loadDoc();
-      const storedHash = data._pwHash;
-      if (!storedHash) {
-        // Restore _pwHash to Firestore from localStorage
-        const ref = doc(db, "dashboard", boardKey);
-        await setDoc(ref, { _pwHash: pwHash }, { merge: true });
-      }
-      document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-      loadDay(boardKey, dk(currentDate));
-      preloadRecent(boardKey);
-    })();
-  } else {
-    // Need password - show login screen with name filled
-    document.getElementById('loginKey').value = boardKey;
-    document.getElementById('loginPw').focus();
-  }
+  document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  loadDay(boardKey, dk(currentDate));
+  preloadRecent(boardKey);
 }
 </script>
 </body>

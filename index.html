@@ -102,9 +102,10 @@
   .name-select:focus { border-color: #6c5ce7; }
   .item-selected { color: #a78bfa; font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 36px; }
   .item-text.name-picker { flex: none; min-width: 70px; }
-  .edit-bar { position: fixed; left: 8px; top: 50%; transform: translateY(-50%); z-index: 100; }
-  .edit-bar .edit-toggle { background: #1e1e28; border: 1px solid #333; color: #888; font-size: 10px; padding: 6px 10px; border-radius: 50px; cursor: pointer; transition: all .2s; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; }
+  .edit-bar { position: fixed; left: 4px; top: 50%; z-index: 100; }
+  .edit-bar .edit-toggle { background: #1e1e28; border: 1px solid #333; color: #888; font-size: 10px; padding: 10px 6px; border-radius: 50px; cursor: pointer; transition: all .3s ease; box-shadow: 0 2px 8px rgba(0,0,0,.4); writing-mode: vertical-rl; letter-spacing: 4px; animation: editSlideIn .5s ease-out; }
+  @keyframes editSlideIn { 0% { opacity: 0; transform: translateX(-20px); } 100% { opacity: 1; transform: translateX(0); } }
+  .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; transform: scale(1.08); }
   .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 700; }
   .check-item .edit-btn, .check-item .del-btn { display: none; }
   .edit-mode .edit-btn, .edit-mode .del-btn { display: inline-block !important; }
@@ -455,7 +456,7 @@ function positionEditBar() {
   const eb = document.querySelector('.edit-bar');
   if (!cl || !eb || cl.offsetHeight === 0) return;
   const rect = cl.getBoundingClientRect();
-  const top = rect.top + rect.height / 2;
+  const top = rect.top + rect.height / 2 - eb.offsetHeight / 2;
   eb.style.top = top + 'px';
 }
 function renderStreak() {

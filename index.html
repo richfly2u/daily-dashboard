@@ -119,6 +119,21 @@
   .edit-mode .cb { pointer-events: none; }
   .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #282838; border-top-color: #6c5ce7; border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .care-toggle { width:100%;background:linear-gradient(135deg,#1a1a3e,#2a1a3e);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px 14px;margin-top:4px;margin-bottom:16px;color:#a78bfa;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .2s; }
+  .care-toggle:hover { border-color:#a78bfa; }
+  .care-toggle .care-arrow { font-size:11px;transition:transform .3s; }
+  .care-toggle.open .care-arrow { transform:rotate(180deg); }
+  .care-overview { display:none;background:#151520;border:1px solid #282838;border-radius:12px;padding:14px;margin-bottom:16px; }
+  .care-overview.open { display:block; }
+  .care-overview table { width:100%;border-collapse:collapse;font-size:12px; }
+  .care-overview th { text-align:left;color:#666;font-weight:600;font-size:11px;padding:6px 4px;border-bottom:1px solid #282838; }
+  .care-overview td { padding:6px 4px;border-bottom:1px solid #1a1a2e;color:#ccc; }
+  .care-overview tr:last-child td { border-bottom:none; }
+  .care-overview .ov-head { font-weight:600;color:#e8e8ed; }
+  .care-overview .ov-status { display:inline-block;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600; }
+  .care-overview .ov-status.ready { background:#065f4622;color:#34d399; }
+  .care-overview .ov-status.cooling { background:#78350f22;color:#f59e0b; }
+  .care-overview .ov-status.never { background:#1e3a5f22;color:#60a5fa; }
   /* Cute name dialog styles */
   .cute-dialog { background: linear-gradient(145deg, #1e1e32, #2a1a3e); border: 1px solid rgba(168,85,247,.2); border-radius: 20px; padding: 28px 24px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow: 0 8px 32px rgba(0,0,0,.5); position:relative; }
   .cute-dialog::before { content:'🌸'; position:absolute; top:-6px; right:-6px; font-size:20px; opacity:.6; }
@@ -481,6 +496,32 @@ function render() {
   document.querySelectorAll('.note-close-btn').forEach(btn => {
     btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
   });
+  // === Care Overview toggle (only for item 10, index 9) ===
+  const careToggle = document.getElementById('careToggleWrap');
+  if (careToggle) careToggle.remove();
+  const existingOverview = document.getElementById('careOverview');
+  if (existingOverview) existingOverview.remove();
+  const tenth = items[9];
+  if (tenth && tenth.type === 'name-picker') {
+    const wrap = document.createElement('div');
+    wrap.id = 'careToggleWrap';
+    const isOpen = localStorage.getItem('careOverviewOpen') === 'true';
+    wrap.innerHTML = `<button class="care-toggle${isOpen?' open':''}" id="careToggleBtn">
+      <span>📊 關心總覽表</span>
+      <span class="care-arrow">▼</span>
+    </button>
+    <div class="care-overview${isOpen?' open':''}" id="careOverview"></div>`;
+    list.after(wrap);
+    document.getElementById('careToggleBtn').onclick = () => {
+      const btn2 = document.getElementById('careToggleBtn');
+      const ov = document.getElementById('careOverview');
+      const open = btn2.classList.toggle('open');
+      ov.classList.toggle('open');
+      localStorage.setItem('careOverviewOpen', open);
+      if (open) renderCareOverview();
+    };
+    if (isOpen) renderCareOverview();
+  }
 }
 
 function getDateDiffDays() {
@@ -515,6 +556,44 @@ function getTodayPerson() {
   const start = new Date('2024-01-01');
   const diff = Math.floor((Date.now() - start.getTime()) / 86400000);
   return nameList[diff % nameList.length];
+}
+
+function renderCareOverview() {
+  const ov = document.getElementById('careOverview');
+  if (!ov) return;
+  const now = new Date();
+  const rows = nameList.map(n => {
+    const last = careDates[n];
+    const days = last ? Math.round((now - new Date(last)) / 86400000) : -1;
+    const eligible = days === -1 || days >= careInterval;
+    let status, cls;
+    if (days === -1) { status = '未曾關心'; cls = 'never'; }
+    else if (eligible) { status = `可關心（${days}天前）`; cls = 'ready'; }
+    else { status = `冷卻中（${days}/${careInterval}）`; cls = 'cooling'; }
+    return { n, last, days, status, cls };
+  });
+  const sorted = [...rows].sort((a, b) => {
+    if (a.days === -1 && b.days === -1) return nameList.indexOf(a.n) - nameList.indexOf(b.n);
+    if (a.days === -1) return -1;
+    if (b.days === -1) return 1;
+    return a.days - b.days;
+  });
+  const totalCared = rows.filter(r => r.days >= 0).length;
+  const avgDays = totalCared ? Math.round(rows.reduce((s, r) => s + (r.days >= 0 ? r.days : 0), 0) / totalCared) : 0;
+  ov.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:8px;">
+    <span>👥 ${nameList.length} 人</span>
+    <span>📅 週期：每 ${careEvery} 天關心 ${careCount} 人</span>
+    <span>⏱ 平均 ${avgDays} 天前</span>
+  </div>
+  <table>
+    <tr><th>姓名</th><th>上次關心</th><th>間隔</th><th>狀態</th></tr>
+    ${sorted.map(r => `<tr>
+      <td class="ov-head">${esc(r.n)}</td>
+      <td>${r.last || '—'}</td>
+      <td>${r.days === -1 ? '—' : r.days + ' 天'}</td>
+      <td><span class="ov-status ${r.cls}">${esc(r.status)}</span></td>
+    </tr>`).join('')}
+  </table>`;
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

@@ -156,7 +156,7 @@
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
-  <div class="edit-bar"><button class="edit-toggle" id="editToggle">✏️ 編輯項目</button></div>
+  <div class="edit-bar"><button class="edit-toggle" id="editToggle">✏️編輯項目</button></div>
 
   <div class="checklist" id="checklist"></div>
 
@@ -582,7 +582,7 @@ document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') 
 document.getElementById('nameListBtn').onclick = showNameDialog;
 document.getElementById('editToggle').onclick = () => {
   editMode = !editMode;
-  document.getElementById('editToggle').textContent = editMode ? '✅ 完成編輯' : '✏️ 編輯項目';
+  document.getElementById('editToggle').textContent = editMode ? '✅完成編輯' : '✏️編輯項目';
   document.getElementById('editToggle').className = 'edit-toggle' + (editMode ? ' active' : '');
   render();
 };

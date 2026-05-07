@@ -260,12 +260,7 @@ async function loadDay(key, dateStr) {
     let migrated = dayData.items.map(i => typeof i === 'string'
       ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
       : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
-    // Append missing default items (e.g. new name-picker)
-    for (let j = migrated.length; j < DEFAULTS.length; j++) {
-      migrated.push({...DEFAULTS[j], done:false, selected:DEFAULTS[j].selected||"", notes:""});
-    }
-    // Migrate existing items: if DEFAULTS says name-picker but stored item is text, upgrade it
-    // Also update text if DEFAULTS text differs (e.g. "值班人員" → "成全對象")
+    // Update text/type from defaults without appending deleted items
     DEFAULTS.forEach((def, j) => {
       if (j >= migrated.length) return;
       if (def.type === 'name-picker' && migrated[j].type !== 'name-picker') {
@@ -313,11 +308,6 @@ async function preloadRecent(key) {
       cache[ds] = { items: dayData.items.map(i => typeof i === 'string'
         ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
         : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
-      // Append missing defaults
-      const mi = cache[ds].items;
-      for (let j = mi.length; j < DEFAULTS.length; j++) {
-        mi.push({...DEFAULTS[j], done:false, selected:DEFAULTS[j].selected||"", notes:""});
-      }
     }
   }
   const today2 = new Date();

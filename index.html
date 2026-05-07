@@ -102,10 +102,10 @@
   .name-select:focus { border-color: #6c5ce7; }
   .item-selected { color: #a78bfa; font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 36px; }
   .item-text.name-picker { flex: none; min-width: 70px; }
-  .edit-bar { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); z-index: 100; display: flex; justify-content: center; }
-  .edit-bar .edit-toggle { background: none; border: 1px solid #444; color: #888; font-size: 13px; padding: 6px 18px; border-radius: 20px; cursor: pointer; transition: all .2s; }
+  .edit-bar { position: fixed; left: 8px; top: 50%; transform: translateY(-50%); z-index: 100; }
+  .edit-bar .edit-toggle { background: #1e1e28; border: 1px solid #333; color: #888; font-size: 10px; padding: 6px 10px; border-radius: 50px; cursor: pointer; transition: all .2s; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
   .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; }
-  .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 600; }
+  .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 700; }
   .check-item .edit-btn, .check-item .del-btn { display: none; }
   .edit-mode .edit-btn, .edit-mode .del-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
@@ -430,6 +430,7 @@ function render() {
   document.querySelectorAll('.note-close-btn').forEach(btn => {
     btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
   });
+  positionEditBar();
 }
 
 function getTodayPerson() {
@@ -459,6 +460,14 @@ function getHistoryNotes(idx) {
   return out;
 }
 
+function positionEditBar() {
+  const cl = document.getElementById('checklist');
+  const eb = document.querySelector('.edit-bar');
+  if (!cl || !eb || cl.offsetHeight === 0) return;
+  const rect = cl.getBoundingClientRect();
+  const top = rect.top + rect.height / 2;
+  eb.style.top = top + 'px';
+}
 function renderStreak() {
   let s=0; const d2=new Date();
   while(true) {
@@ -593,6 +602,7 @@ document.getElementById('resetBtn').onclick = () => {
 };
 document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
 document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveCurrentDay(); });
+window.addEventListener('resize', positionEditBar);
 
 // Auto-login
 if (boardKey) {

@@ -198,6 +198,14 @@
     <div class="checklist" id="checklist"></div>
   </div>
 
+  <div id="careToggleWrap" style="display:none;">
+    <button class="care-toggle" id="careToggleBtn">
+      <span>📊 關心總覽表</span>
+      <span class="care-arrow">▼</span>
+    </button>
+    <div class="care-overview" id="careOverview"></div>
+  </div>
+
   <div class="add-wrap">
     <input type="text" id="newItemInput" placeholder="新增項目..." maxlength="60">
     <button class="add-btn" id="addBtn">+</button>
@@ -497,36 +505,18 @@ function render() {
     btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
   });
   // === Care Overview toggle (below last name-picker item) ===
-  const careToggle = document.getElementById('careToggleWrap');
-  if (careToggle) careToggle.remove();
-  const existingOverview = document.getElementById('careOverview');
-  if (existingOverview) existingOverview.remove();
-  const lastNpIdx = [...items].reverse().findIndex(it => it.type === 'name-picker');
-  if (lastNpIdx !== -1) {
-    const tenthIdx = items.length - 1 - lastNpIdx;
-    const wrap = document.createElement('div');
-    wrap.id = 'careToggleWrap';
-    const isOpen = localStorage.getItem('careOverviewOpen') === 'true';
-    wrap.innerHTML = `<button class="care-toggle${isOpen?' open':''}" id="careToggleBtn">
-      <span>📊 關心總覽表</span>
-      <span class="care-arrow">▼</span>
-    </button>
-    <div class="care-overview${isOpen?' open':''}" id="careOverview"></div>`;
-    const allItems = list.querySelectorAll('.check-item');
-    if (allItems[tenthIdx]) {
-      allItems[tenthIdx].after(wrap);
+  const toggleWrap = document.getElementById('careToggleWrap');
+  if (toggleWrap) {
+    const lastNpIdx = [...items].reverse().findIndex(it => it.type === 'name-picker');
+    if (lastNpIdx !== -1) {
+      const isOpen = localStorage.getItem('careOverviewOpen') === 'true';
+      toggleWrap.style.display = '';
+      document.getElementById('careToggleBtn').className = 'care-toggle' + (isOpen ? ' open' : '');
+      document.getElementById('careOverview').className = 'care-overview' + (isOpen ? ' open' : '');
+      if (isOpen) renderCareOverview();
     } else {
-      list.after(wrap);
+      toggleWrap.style.display = 'none';
     }
-    document.getElementById('careToggleBtn').onclick = () => {
-      const btn2 = document.getElementById('careToggleBtn');
-      const ov = document.getElementById('careOverview');
-      const open = btn2.classList.toggle('open');
-      ov.classList.toggle('open');
-      localStorage.setItem('careOverviewOpen', open);
-      if (open) renderCareOverview();
-    };
-    if (isOpen) renderCareOverview();
   }
 }
 
@@ -772,6 +762,14 @@ document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); re
 document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
 document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };
 document.getElementById('nameListBtn').onclick = showNameDialog;
+document.getElementById('careToggleBtn').onclick = () => {
+  const btn = document.getElementById('careToggleBtn');
+  const ov = document.getElementById('careOverview');
+  const open = btn.classList.toggle('open');
+  ov.classList.toggle('open');
+  localStorage.setItem('careOverviewOpen', open);
+  if (open) renderCareOverview();
+};
 document.getElementById('editToggle').onclick = () => {
   editMode = !editMode;
   document.getElementById('editToggle').textContent = editMode ? '✅完成編輯' : '✏️編輯項目';

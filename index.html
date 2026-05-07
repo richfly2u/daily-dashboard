@@ -378,6 +378,8 @@ async function preloadRecent(key) {
   careDates = data._careDates || {};
   for (const [ds, dayData] of Object.entries(data)) {
     if (ds === '_names' || ds === '_careEvery' || ds === '_careCount' || ds === '_careInterval' || ds === '_careDates') continue;
+    // Skip today — already loaded and migrated by loadDay
+    if (ds === dk(currentDate)) continue;
     if (dayData && dayData.items) {
       cache[ds] = { items: dayData.items.map(i => typeof i === 'string'
         ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}

@@ -205,7 +205,7 @@ const DEFAULTS = [
   {text:"做 10 分鐘運動",type:"text",locked:true},
   {text:"學一個小技能",type:"text",locked:true},
   {text:"和一個人深度聊天",type:"text",locked:true},
-  {text:"記錄當天最大一筆開支",type:"text",locked:true},
+  {text:"今天關心了誰？",type:"name-picker",selected:"",locked:true},
   {text:"睡前寫下明天要做的事",type:"text",locked:true},
   {text:"今天成全了誰？",type:"name-picker",selected:"",locked:true}
 ];
@@ -269,14 +269,16 @@ async function loadDay(key, dateStr) {
       if (def.type === 'name-picker' && migrated[j].type !== 'name-picker') {
         migrated[j].type = 'name-picker';
         migrated[j].selected = migrated[j].selected || '';
+        migrated[j].text = def.text; // Update text when converting to name-picker
       }
       // Reverse: if DEFAULTS says text but stored is name-picker (item moved), downgrade
       if (def.type === 'text' && migrated[j].type === 'name-picker') {
         migrated[j].type = 'text';
         delete migrated[j].selected;
+        migrated[j].text = def.text; // Update text when converting to text
       }
       // Set default text only if empty (user can customize)
-      if (!migrated[j].text) migrated[j].text = def.text;
+      if (!migrated[j].text && migrated[j].type === def.type) migrated[j].text = def.text;
     });
     cache[dateStr] = { items: migrated };
   } else {

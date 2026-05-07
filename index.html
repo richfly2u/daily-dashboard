@@ -117,6 +117,25 @@
   .edit-mode .cb { pointer-events: none; }
   .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #282838; border-top-color: #6c5ce7; border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  /* Cute name dialog styles */
+  .cute-dialog { background: linear-gradient(145deg, #1e1e32, #2a1a3e); border: 1px solid rgba(168,85,247,.2); border-radius: 20px; padding: 28px 24px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow: 0 8px 32px rgba(0,0,0,.5); position:relative; }
+  .cute-dialog::before { content:'🌸'; position:absolute; top:-6px; right:-6px; font-size:20px; opacity:.6; }
+  .cute-dialog::after { content:'🌿'; position:absolute; bottom:-6px; left:-6px; font-size:16px; opacity:.5; }
+  .cute-dialog h3 { font-size:18px; font-weight:700; margin-bottom:16px; color:#e8e8ed; text-align:center; }
+  .cute-dialog .name-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; margin-bottom:4px; transition:background .2s; }
+  .cute-dialog .name-item:hover { background: rgba(168,85,247,.08); }
+  .cute-dialog .name-avatar { width:32px; height:32px; border-radius:50%; background: linear-gradient(135deg, #6c5ce7, #a855f7); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:white; flex-shrink:0; }
+  .cute-dialog .name-text { flex:1; font-size:14px; color:#e8e8ed; cursor:text; padding:4px 0; }
+  .cute-dialog .del-name-btn { background:none; border:none; color:#f87171; font-size:16px; cursor:pointer; padding:2px 6px; border-radius:6px; opacity:.5; transition:all .2s; }
+  .cute-dialog .del-name-btn:hover { opacity:1; background:rgba(248,113,113,.1); }
+  .cute-dialog .input-wrap { display:flex; gap:8px; margin-top:12px; }
+  .cute-dialog .input-wrap input { flex:1; background:#1a1a28; border:1px solid #333; border-radius:10px; padding:10px 14px; color:#e8e8ed; font-size:14px; outline:none; }
+  .cute-dialog .input-wrap input:focus { border-color:#a855f7; }
+  .cute-dialog .input-wrap .add-name-btn { background:linear-gradient(135deg,#6c5ce7,#a855f7); border:none; color:white; font-size:18px; width:40px; border-radius:10px; cursor:pointer; font-weight:600; }
+  .cute-dialog .btn-row { display:flex; gap:8px; margin-top:16px; }
+  .cute-dialog .btn-row .close-btn { flex:1; background:#282838; border:none; border-radius:10px; padding:10px; color:#e8e8ed; font-size:14px; cursor:pointer; transition:background .2s; }
+  .cute-dialog .btn-row .close-btn:hover { background:#333; }
+  .cute-dialog .btn-row .save-btn { flex:1; background:linear-gradient(135deg,#6c5ce7,#a855f7); border:none; border-radius:10px; padding:10px; color:white; font-size:14px; font-weight:600; cursor:pointer; }
   @media (max-width: 480px) { .app { padding: 16px 12px 32px; } }
 </style>
 </head>
@@ -482,16 +501,16 @@ function renderHeatmap() {
 // === Name Management Dialog ===
 const dialogHTML = `
 <div id="nameDialog" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-  <div style="background:#1a1a24;border-radius:16px;padding:24px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;">
-    <h3 style="margin-bottom:16px;">👥 管理人員名單</h3>
+  <div class="cute-dialog">
+    <h3>🌸 管理人員名單 🌸</h3>
     <div id="nameListContainer"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <input type="text" id="newNameInput" placeholder="新增姓名..." maxlength="20" style="flex:1;background:#0f0f13;border:1px solid #282838;border-radius:8px;padding:8px 12px;color:#e8e8ed;font-size:14px;outline:none;">
-      <button id="addNameBtn" class="add-btn" style="position:static;">+</button>
+    <div class="input-wrap">
+      <input type="text" id="newNameInput" placeholder="新增姓名..." maxlength="20">
+      <button id="addNameBtn" class="add-name-btn">+</button>
     </div>
-    <div style="display:flex;gap:8px;margin-top:16px;">
-      <button id="closeNameDialog" style="flex:1;background:#282838;border:none;border-radius:10px;padding:10px;color:#e8e8ed;font-size:14px;cursor:pointer;">關閉</button>
-      <button id="saveNameList" style="flex:1;background:linear-gradient(135deg,#6c5ce7,#a855f7);border:none;border-radius:10px;padding:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">💾 儲存名單</button>
+    <div class="btn-row">
+      <button id="closeNameDialog" class="close-btn">關閉</button>
+      <button id="saveNameList" class="save-btn">💾 儲存名單</button>
     </div>
   </div>
 </div>`;
@@ -521,12 +540,14 @@ function showNameDialog() {
 function renderNameList() {
   const container = document.getElementById('nameListContainer');
   if (!container) return;
-  container.innerHTML = nameList.map((n, i) =>
-    `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #282838;">
-      <span class="name-text" data-idx="${i}" style="flex:1;font-size:14px;cursor:text;">${esc(n)}</span>
-      <button class="del-name-btn" data-idx="${i}" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
-    </div>`
-  ).join('');
+  container.innerHTML = nameList.map((n, i) => {
+    const initial = n.charAt(0);
+    return `<div class="name-item">
+      <div class="name-avatar">${esc(initial)}</div>
+      <span class="name-text" data-idx="${i}">${esc(n)}</span>
+      <button class="del-name-btn" data-idx="${i}">✕</button>
+    </div>`;
+  }).join('');
   container.querySelectorAll('.name-text').forEach(span => {
     span.onclick = () => {
       const idx = parseInt(span.dataset.idx);

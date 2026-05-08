@@ -1,11 +1,11 @@
 {
   "name": "每日行動儀表板",
   "short_name": "行動儀表板",
-  "description": "每日 9 件高回報小事習慣追蹤",
+  "description": "Daily habit tracker, name picker, and care overview dashboard",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
+  "background_color": "#0f0f13",
+  "theme_color": "#0f172a",
   "orientation": "portrait",
   "icons": [
     {

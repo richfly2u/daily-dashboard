@@ -1,10 +1,8 @@
-const CACHE = 'daily-dashboard-v1';
+const CACHE = 'daily-dash-v1';
 const URLS = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(URLS))
-  );
+  e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(URLS)));
   self.skipWaiting();
 });
 

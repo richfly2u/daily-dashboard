@@ -451,7 +451,7 @@ function render() {
     }
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
-      `<button class="note-btn" data-idx="${i}">📝</button>` +
+      `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
       `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
     div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {

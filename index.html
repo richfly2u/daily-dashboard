@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="行�??�表板">
-<title>每日行�??�表板</title>
+<meta name="apple-mobile-web-app-title" content="行動儀表板">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>每日行動儀表板</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -136,8 +138,8 @@
   .care-overview .ov-status.never { background:#1e3a5f22;color:#60a5fa; }
   /* Cute name dialog styles */
   .cute-dialog { background: linear-gradient(145deg, #1e1e32, #2a1a3e); border: 1px solid rgba(168,85,247,.2); border-radius: 20px; padding: 28px 24px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow: 0 8px 32px rgba(0,0,0,.5); position:relative; }
-  .cute-dialog::before { content:'?��'; position:absolute; top:-6px; right:-6px; font-size:20px; opacity:.6; }
-  .cute-dialog::after { content:'?��'; position:absolute; bottom:-6px; left:-6px; font-size:16px; opacity:.5; }
+  .cute-dialog::before { content:'🌸'; position:absolute; top:-6px; right:-6px; font-size:20px; opacity:.6; }
+  .cute-dialog::after { content:'🌿'; position:absolute; bottom:-6px; left:-6px; font-size:16px; opacity:.5; }
   .cute-dialog h3 { font-size:18px; font-weight:700; margin-bottom:16px; color:#e8e8ed; text-align:center; }
   .cute-dialog .name-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; margin-bottom:4px; transition:background .2s; }
   .cute-dialog .name-item:hover { background: rgba(168,85,247,.08); }
@@ -159,67 +161,68 @@
 <body>
 
 <div class="login-screen" id="loginScreen">
-  <div style="font-size:48px;margin-bottom:16px;">??</div>
-  <h2>每日行�??�表板</h2>
-  <p>輸入?�表板?�稱</p>
+  <div style="font-size:48px;margin-bottom:16px;">📋</div>
+  <h2>每日行動儀表板</h2>
+  <p>輸入儀表板名稱</p>
   <input type="text" id="loginKey" placeholder="alan" maxlength="20" autocomplete="off">
-  <button class="login-btn" id="loginBtn">?�入</button>
-  <p class="hint">?�� 不�?裝置?��?一?��?稱就?�自?��?�?/p>
+  <button class="login-btn" id="loginBtn">進入</button>
+  <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
 </div>
 
 <div class="app" id="mainApp" style="display:none">
   <div class="header">
-    <h1><span class="status-dot offline" id="statusDot"></span>?? <span id="boardName">?�表板</span></h1>
+    <h1><span class="status-dot offline" id="statusDot"></span>📋 <span id="boardName">儀表板</span></h1>
     <div class="streak-badge" id="streakBadge" style="display:none">
-      <span class="fire">?��</span><span id="streakCount">0</span>�?    </div>
+      <span class="fire">🔥</span><span id="streakCount">0</span>天
+    </div>
   </div>
 
   <div class="date-nav">
-    <button id="prevDay">??/button>
+    <button id="prevDay">‹</button>
     <div><span class="date-label" id="dateLabel"></span><span class="weekday" id="weekdayLabel"></span></div>
-    <button id="nextDay">??/button>
+    <button id="nextDay">›</button>
     <div class="today-btn" id="todayBtn">今天</div>
   </div>
 
   <div class="stats">
-    <div class="stat-card"><div class="num blue" id="doneCount">0</div><div class="label">已�???/div></div>
-    <div class="stat-card"><div class="num green" id="totalCount">0</div><div class="label">總�???/div></div>
-    <div class="stat-card"><div class="num purple" id="rateCount">0%</div><div class="label">完�???/div></div>
+    <div class="stat-card"><div class="num blue" id="doneCount">0</div><div class="label">已完成</div></div>
+    <div class="stat-card"><div class="num green" id="totalCount">0</div><div class="label">總項目</div></div>
+    <div class="stat-card"><div class="num purple" id="rateCount">0%</div><div class="label">完成率</div></div>
   </div>
 
   <div class="progress-wrap">
-    <div class="progress-top"><span>今日?�度</span><span class="pct" id="progressPct">0%</span></div>
+    <div class="progress-top"><span>今日進度</span><span class="pct" id="progressPct">0%</span></div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
   <div class="checklist-wrap">
-    <div class="edit-bar"><button class="edit-toggle" id="editToggle">?��?編輯?�目</button></div>
+    <div class="edit-bar"><button class="edit-toggle" id="editToggle">✏️編輯項目</button></div>
     <div class="checklist" id="checklist"></div>
   </div>
 
   <div id="careToggleWrap" style="display:none;">
     <button class="care-toggle" id="careToggleBtn">
-      <span>?? ?��?總覽�?/span>
-      <span class="care-arrow">??/span>
+      <span>📊 關心總覽表</span>
+      <span class="care-arrow">▼</span>
     </button>
     <div class="care-overview" id="careOverview"></div>
   </div>
 
   <div class="add-wrap">
-    <input type="text" id="newItemInput" placeholder="?��??�目..." maxlength="60">
+    <input type="text" id="newItemInput" placeholder="新增項目..." maxlength="60">
     <button class="add-btn" id="addBtn">+</button>
   </div>
 
   <div class="heatmap-section">
-    <h3>?? �?90 天熱?��?</h3>
+    <h3>📊 近 90 天熱力圖</h3>
     <div class="heatmap" id="heatmap"></div>
-    <div class="heatmap-legend"><span>�?/span><span class="swatch" style="background:#0f0f13"></span><span class="swatch" style="background:#1a1a3a"></span><span class="swatch" style="background:#2d2d6e"></span><span class="swatch" style="background:#5b5be0"></span><span class="swatch" style="background:#818cf8"></span><span class="swatch" style="background:#34d399"></span><span>�?/span></div>
+    <div class="heatmap-legend"><span>少</span><span class="swatch" style="background:#0f0f13"></span><span class="swatch" style="background:#1a1a3a"></span><span class="swatch" style="background:#2d2d6e"></span><span class="swatch" style="background:#5b5be0"></span><span class="swatch" style="background:#818cf8"></span><span class="swatch" style="background:#34d399"></span><span>多</span></div>
   </div>
 
   <div class="footer-actions">
-    <button class="footer-btn" id="resetBtn">??�??�置今天</button>
-    <button class="footer-btn" id="nameListBtn">?�� ?�單管�?</button>
-    <button class="footer-btn" id="logoutBtn">?�� ?��?帳�?</button>
+    <button class="footer-btn" id="resetBtn">🗑️ 重置今天</button>
+    <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
+    <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
 </div>
 
@@ -238,19 +241,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const DEFAULT_NAMES = ["?��?�?,"姜艾??,"?��?�?,"?��?�?,"?��?�?,"?��?�?,"?�育�?,"?��???,"康�???,"?�育�?,"?�玥�?,"?��?�?,"?��?�?,"?�信�?,"?��???,"?��???,"?�嬿�?,"洪�???,"?��?�?,"?�哲�?];
+const DEFAULT_NAMES = ["陳冠宇","姜艾陵","曾文欽","陳淑鳳","呂桓毅","陳有德","范育誠","鄭子韋","康必達","陳育徵","邵玥秞","呂秀娟","林于修","王信淵","蘇素茹","李國珍","王嬿翔","洪國城","劉子榕","胡哲強"];
 
 const DEFAULTS = [
-  {text:"?�起後�?碰�?機�??��?�?,type:"text",locked:true},
-  {text:"每天讀 10 ?��??�書",type:"text",locked:true},
-  {text:"寫�??�話?��?",type:"text",locked:true},
-  {text:"?��?一?�空?��?10?��?�?,type:"text",locked:true},
-  {text:"??10 ?��??��?",type:"text",locked:true},
-  {text:"學�??��??�??,type:"text",locked:true},
-  {text:"?��??�人深度?�天",type:"text",locked:true},
-  {text:"今日?��??�全了誰�?,type:"name-picker",selected:"",locked:true},
-  {text:"?��?寫�??�天要�??��?",type:"text",locked:true},
-  {text:"今天?�全了誰�?,type:"name-picker",selected:"",locked:true}
+  {text:"早起後不碰手機，先喝水",type:"text",locked:true},
+  {text:"每天讀 10 頁紙本書",type:"text",locked:true},
+  {text:"寫三句話日記",type:"text",locked:true},
+  {text:"整理一個空間（10分鐘）",type:"text",locked:true},
+  {text:"做 10 分鐘運動",type:"text",locked:true},
+  {text:"學一個小技能",type:"text",locked:true},
+  {text:"和一個人深度聊天",type:"text",locked:true},
+  {text:"今日關心成全了誰？",type:"name-picker",selected:"",locked:true},
+  {text:"睡前寫下明天要做的事",type:"text",locked:true},
+  {text:"今天成全了誰？",type:"name-picker",selected:"",locked:true}
 ];
 
 let boardKey = localStorage.getItem('dashboard_key') || '';
@@ -377,7 +380,7 @@ async function preloadRecent(key) {
   careDates = data._careDates || {};
   for (const [ds, dayData] of Object.entries(data)) {
     if (ds === '_names' || ds === '_careEvery' || ds === '_careCount' || ds === '_careInterval' || ds === '_careDates') continue;
-    // Skip today ??already loaded and migrated by loadDay
+    // Skip today — already loaded and migrated by loadDay
     if (ds === dk(currentDate)) continue;
     if (dayData && dayData.items) {
       cache[ds] = { items: dayData.items.map(i => typeof i === 'string'
@@ -407,7 +410,7 @@ function render() {
   const total = items.length, completed = items.filter(i => i.done).length;
   const rate = total ? Math.round(completed/total*100) : 0;
   document.getElementById('dateLabel').textContent = `${currentDate.getFullYear()}/${currentDate.getMonth()+1}/${currentDate.getDate()}`;
-  document.getElementById('weekdayLabel').textContent = `??{['??,'一','�?,'�?,'??,'�?,'??][currentDate.getDay()]}`;
+  document.getElementById('weekdayLabel').textContent = `週${['日','一','二','三','四','五','六'][currentDate.getDay()]}`;
   document.getElementById('todayBtn').style.display = dk(currentDate) === today() ? 'none' : '';
   document.getElementById('doneCount').textContent = completed;
   document.getElementById('totalCount').textContent = total;
@@ -432,24 +435,24 @@ function render() {
       }
       const names = item.selected ? item.selected.split(',').filter(Boolean) : [];
       if (careCount > 1 || names.length > 1) {
-        extraHTML = `<span class="item-text">?�� ${esc(text)}</span>` +
+        extraHTML = `<span class="item-text">👤 ${esc(text)}</span>` +
           `<div style="display:flex;flex-wrap:wrap;gap:4px;flex:1;align-items:center;">` +
           names.map(s => `<span style="background:linear-gradient(135deg,#6c5ce7,#a855f7);color:white;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;">${esc(s)}</span>`).join('') +
-          (names.length ? '' : `<span style="color:#555;font-size:12px;">?�選</span>`) +
+          (names.length ? '' : `<span style="color:#555;font-size:12px;">未選</span>`) +
           `</div>`;
       } else {
         const todayName = names[0] || '?';
-        extraHTML = `<span class="item-text">?�� ${esc(text)} <strong>${esc(todayName)}</strong></span>`;
+        extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong></span>`;
       }
       var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">??/div><button class="edit-btn" data-idx="${i}">?��?</button>${extraHTML}<button class="del-btn" data-idx="${i}">??/button>` +
-      `<button class="lock-btn" data-idx="${i}">${locked?'??':'??'}</button>` +
-      `<button class="note-btn" data-idx="${i}">??</button>` +
-      `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫�?�?..">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">??/button></div>`;
+    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
+      `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
+      `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
+      `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
     div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
     if (item.type !== 'name-picker') {
       div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
@@ -458,7 +461,7 @@ function render() {
     if (selEl) selEl.onchange = function() {
       item.selected = this.value;
       const s = div.querySelector('.item-selected');
-      if (s) s.textContent = this.value || '?�選';
+      if (s) s.textContent = this.value || '未選';
       scheduleSave();
     };
     div.querySelector('.note-btn').onclick = (e) => {
@@ -467,9 +470,9 @@ function render() {
       const hDiv = document.getElementById('noteHistory' + i);
       if (hDiv) {
         const h = getHistoryNotes(i);
-        hDiv.innerHTML = !h.length ? '<div class="nh-empty">?�兩天無記�?</div>'
+        hDiv.innerHTML = !h.length ? '<div class="nh-empty">前兩天無記錄</div>'
           : h.map(x => '<div class="nh-item"><span class="nh-date">' + esc(x.date) + '</span>'
-            + (x.selected ? '<span class="nh-person">?��' + esc(x.selected) + '</span>' : '')
+            + (x.selected ? '<span class="nh-person">👤' + esc(x.selected) + '</span>' : '')
             + '<span class="nh-text">' + esc(x.notes) + '</span></div>').join('');
       }
       a.querySelector('textarea').focus();
@@ -493,14 +496,14 @@ function render() {
         if (v && v !== item.text) { item.text = v; scheduleSave(); }
         const span = document.createElement('span');
         span.className = 'item-text' + (isNp ? ' name-picker' : '');
-        span.textContent = isNp ? '?�� ' + (v||item.text) : (v||item.text);
+        span.textContent = isNp ? '👤 ' + (v||item.text) : (v||item.text);
         inp.replaceWith(span);
         if (!isNp) span.onclick = () => toggle(i);
       };
       inp.onblur = save;
       inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
     };
-    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false && !editMode) return; if (confirm(`?�除??{text}?��?`)) del(i); };
+    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false && !editMode) return; if (confirm(`刪除「${text}」？`)) del(i); };
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
@@ -568,9 +571,9 @@ function renderCareOverview() {
     const days = last ? Math.round((now - new Date(last)) / 86400000) : -1;
     const eligible = days === -1 || days >= careInterval;
     let status, cls;
-    if (days === -1) { status = '?�曾?��?'; cls = 'never'; }
-    else if (eligible) { status = `?��?心�?${days}天�?）`; cls = 'ready'; }
-    else { status = `?�卻中�?${days}/${careInterval}）`; cls = 'cooling'; }
+    if (days === -1) { status = '未曾關心'; cls = 'never'; }
+    else if (eligible) { status = `可關心（${days}天前）`; cls = 'ready'; }
+    else { status = `冷卻中（${days}/${careInterval}）`; cls = 'cooling'; }
     return { n, last, days, status, cls };
   });
   const sorted = [...rows].sort((a, b) => {
@@ -582,16 +585,16 @@ function renderCareOverview() {
   const totalCared = rows.filter(r => r.days >= 0).length;
   const avgDays = totalCared ? Math.round(rows.reduce((s, r) => s + (r.days >= 0 ? r.days : 0), 0) / totalCared) : 0;
   ov.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:8px;">
-    <span>?�� ${nameList.length} �?/span>
-    <span>?? ?��?：�? ${careEvery} 天�?�?${careCount} �?/span>
-    <span>??平�? ${avgDays} 天�?</span>
+    <span>👥 ${nameList.length} 人</span>
+    <span>📅 週期：每 ${careEvery} 天關心 ${careCount} 人</span>
+    <span>⏱ 平均 ${avgDays} 天前</span>
   </div>
   <table>
-    <tr><th>姓�?</th><th>上次?��?</th><th>?��?</th><th>?�??/th></tr>
+    <tr><th>姓名</th><th>上次關心</th><th>間隔</th><th>狀態</th></tr>
     ${sorted.map(r => `<tr>
       <td class="ov-head">${esc(r.n)}</td>
-      <td>${r.last || '??}</td>
-      <td>${r.days === -1 ? '?? : r.days + ' �?}</td>
+      <td>${r.last || '—'}</td>
+      <td>${r.days === -1 ? '—' : r.days + ' 天'}</td>
       <td><span class="ov-status ${r.cls}">${esc(r.status)}</span></td>
     </tr>`).join('')}
   </table>`;
@@ -646,23 +649,23 @@ function renderHeatmap() {
 const dialogHTML = `
 <div id="nameDialog" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
   <div class="cute-dialog">
-    <h3>?�� 管�?人員?�單 ?��</h3>
+    <h3>🌸 管理人員名單 🌸</h3>
     <div id="nameListContainer"></div>
     <div class="input-wrap">
-      <input type="text" id="newNameInput" placeholder="?��?姓�?..." maxlength="20">
+      <input type="text" id="newNameInput" placeholder="新增姓名..." maxlength="20">
       <button id="addNameBtn" class="add-name-btn">+</button>
     </div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid #382838;">
-      <div style="font-size:13px;color:#a78bfa;margin-bottom:10px;font-weight:600;">?? ?��??��?設�?</div>
+      <div style="font-size:13px;color:#a78bfa;margin-bottom:10px;font-weight:600;">📅 關心頻率設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-        <div style="text-align:center;"><label style="font-size:11px;color:#666;">�?N 天�?�?/label><input type="number" id="careEveryInput" min="1" max="365" value="1" class="care-input"></div>
-        <div style="text-align:center;"><label style="font-size:11px;color:#666;">每次 N �?/label><input type="number" id="careCountInput" min="1" max="20" value="1" class="care-input"></div>
-        <div style="text-align:center;"><label style="font-size:11px;color:#666;">?��? N �?/label><input type="number" id="careIntervalInput" min="0" max="365" value="7" class="care-input"></div>
+        <div style="text-align:center;"><label style="font-size:11px;color:#666;">每 N 天關心</label><input type="number" id="careEveryInput" min="1" max="365" value="1" class="care-input"></div>
+        <div style="text-align:center;"><label style="font-size:11px;color:#666;">每次 N 人</label><input type="number" id="careCountInput" min="1" max="20" value="1" class="care-input"></div>
+        <div style="text-align:center;"><label style="font-size:11px;color:#666;">間隔 N 天</label><input type="number" id="careIntervalInput" min="0" max="365" value="7" class="care-input"></div>
       </div>
     </div>
     <div class="btn-row">
-      <button id="closeNameDialog" class="close-btn">?��?</button>
-      <button id="saveNameList" class="save-btn">?�� ?��?設�?</button>
+      <button id="closeNameDialog" class="close-btn">關閉</button>
+      <button id="saveNameList" class="save-btn">💾 儲存設定</button>
     </div>
   </div>
 </div>`;
@@ -716,7 +719,7 @@ function renderNameList() {
     return `<div class="name-item">
       <div class="name-avatar">${esc(initial)}</div>
       <span class="name-text" data-idx="${i}">${esc(n)}</span>
-      <button class="del-name-btn" data-idx="${i}">??/button>
+      <button class="del-name-btn" data-idx="${i}">✕</button>
     </div>`;
   }).join('');
   container.querySelectorAll('.name-text').forEach(span => {
@@ -754,7 +757,7 @@ async function doLogin() {
   if (!key) return;
   boardKey = key;
   localStorage.setItem('dashboard_key', boardKey);
-  document.getElementById('boardName').textContent = key + ' ?��?表板';
+  document.getElementById('boardName').textContent = key + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   await loadDay(boardKey, dk(currentDate));
@@ -777,12 +780,12 @@ document.getElementById('careToggleBtn').onclick = () => {
 };
 document.getElementById('editToggle').onclick = () => {
   editMode = !editMode;
-  document.getElementById('editToggle').textContent = editMode ? '?��??�編�? : '?��?編輯?�目';
+  document.getElementById('editToggle').textContent = editMode ? '✅完成編輯' : '✏️編輯項目';
   document.getElementById('editToggle').className = 'edit-toggle' + (editMode ? ' active' : '');
   render();
 };
 document.getElementById('resetBtn').onclick = () => {
-  if (!confirm('?�置今天?��??��?')) return;
+  if (!confirm('重置今天的資料？')) return;
   const ds=dk(currentDate); cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
   if (boardKey) saveCurrentDay();
 };
@@ -791,12 +794,17 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && boa
 
 // Auto-login
 if (boardKey) {
-  document.getElementById('boardName').textContent = boardKey + ' ?��?表板';
+  document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   loadDay(boardKey, dk(currentDate));
   preloadRecent(boardKey);
 }
 </script>
-<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script></body>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
 </html>

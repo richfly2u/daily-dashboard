@@ -30,8 +30,11 @@
     margin-right: 0;
     overflow-y: auto;
   }
-  /* 隱藏滾軸但保留滾動功能（更乾淨） */
-  .wp-grid::-webkit-scrollbar { width: 0; }
+  /* 滾軸樣式：窄但可見，讓用戶知道可以滾 */
+  .wp-grid::-webkit-scrollbar { width: 4px; }
+  .wp-grid::-webkit-scrollbar-track { background: transparent; }
+  .wp-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .wp-grid::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
   /* === 毛玻璃卡片 === */
   .widget {
@@ -391,6 +394,40 @@ let careEvery = 1, careCount = 1, careInterval = 7;
 const EPOCH = new Date('2025-01-01');
 const DAY_NAMES = ['日','一','二','三','四','五','六'];
 
+function getDateDiffDays() {
+  const ref = new Date(EPOCH);
+  const now = new Date();
+  return Math.round((now - ref) / 86400000);
+}
+function getCareSuggestions() {
+  if (!nameList.length || careEvery < 1) return [];
+  const diff = getDateDiffDays();
+  const isCareDay = (diff % careEvery) === 0;
+  if (!isCareDay) return [];
+  const now = new Date();
+  const eligible = nameList.filter(n => {
+    const last = careDates[n];
+    if (!last) return true;
+    const lastD = new Date(last);
+    return Math.round((now - lastD) / 86400000) >= careInterval;
+  });
+  const scored = eligible.map(n => ({ name: n, score: careDates[n] ? -Math.round((now - new Date(careDates[n])) / 86400000) : -999 }));
+  scored.sort((a, b) => a.score - b.score);
+  return scored.map(s => s.name);
+}
+function getTodayPerson() {
+  const suggestions = getCareSuggestions();
+  if (suggestions.length) return suggestions[0];
+  if (!nameList.length) return '';
+  const start = new Date('2024-01-01');
+  const diff = Math.floor((Date.now() - start.getTime()) / 86400000);
+  return nameList[diff % nameList.length];
+}
+function cycleName(current) {
+  if (!nameList.length) return '';
+  const idx = nameList.indexOf(current);
+  return nameList[(idx + 1) % nameList.length];
+}
 function dk(d) { return d.toISOString().slice(0,10); }
 function today() { return dk(new Date()); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -457,20 +494,44 @@ function render() {
   const list = document.getElementById('taskList');
   list.innerHTML = items.map((item, i) => {
     const isNp = item.type === 'name-picker';
+    // Auto-select name for empty name-picker items
+    if (isNp && !item.selected && nameList.length) {
+      item.selected = getTodayPerson();
+      if (item.selected) scheduleSave();
+    }
     const name = isNp ? (item.selected || '?') : '';
     return `<div class="task-item${item.done?' done':''}" data-idx="${i}">
       <span class="task-num">${i+1}</span>
       <div class="task-cb">✓</div>
       <span class="task-text">${esc(isNp ? item.text : item.text)}</span>
-      ${name ? `<span class="task-tag">👤 ${esc(name)}</span>` : ''}
+      ${name ? `<span class="task-tag" data-np="${i}">👤 ${esc(name)}</span>` : ''}
     </div>`;
   }).join('');
 
   list.querySelectorAll('.task-item').forEach(el => {
-    el.onclick = () => {
+    el.onclick = (e) => {
       const i = parseInt(el.dataset.idx);
       const d = cache[dk(currentDate)];
-      if (d && d.items[i]) { d.items[i].done = !d.items[i].done; render(); scheduleSave(); }
+      if (!d || !d.items[i]) return;
+      // If clicking the tag on a name-picker, cycle name instead of toggle
+      if (d.items[i].type === 'name-picker' && e.target.classList.contains('task-tag')) {
+        const newName = cycleName(d.items[i].selected || '');
+        if (newName) {
+          d.items[i].selected = newName;
+          // Record care date
+          careDates[newName] = dk(new Date());
+          render();
+          scheduleSave();
+        }
+        return;
+      }
+      d.items[i].done = !d.items[i].done;
+      // Record care date when marking name-picker as done
+      if (d.items[i].done && d.items[i].type === 'name-picker' && d.items[i].selected) {
+        d.items[i].selected.split(',').filter(Boolean).forEach(s => { careDates[s] = dk(new Date()); });
+      }
+      render();
+      scheduleSave();
     };
   });
 

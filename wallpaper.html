@@ -16,6 +16,9 @@
     user-select: none;
   }
 
+  /* Fallback background in case Lively shows white on transparent */
+  .wp-grid { background: transparent; }
+
   /* === Widget Grid === */
   .wp-grid {
     display: grid;
@@ -237,10 +240,12 @@
     font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px;
   }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-<div id="loginScreen" class="login-screen" style="display:none">
+<div id="loginScreen" class="login-screen">
   <div class="login-card">
     <div style="font-size:40px;margin-bottom:12px;">📋</div>
     <h2>桌面儀表板</h2>
@@ -322,10 +327,7 @@
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyCRazQsleeT4H4Nt6VrqI1KGlfVenc",
   authDomain: "bentodish-alan.firebaseapp.com",
@@ -334,8 +336,8 @@ const firebaseConfig = {
   messagingSenderId: "652937239500",
   appId: "1:652937239500:web:2c4c3b28b2311f2b12db69"
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 const DEFAULTS = [
   {text:"早起後不碰手機，先喝水",type:"text",locked:true},
@@ -366,8 +368,8 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 async function loadDoc() {
   try {
-    const snap = await getDoc(doc(db, "dashboard", boardKey));
-    return snap.exists() ? snap.data() : {};
+    const snap = await db.collection("dashboard").doc(boardKey).get();
+    return snap.exists ? snap.data() : {};
   } catch(e) { return {}; }
 }
 
@@ -397,7 +399,7 @@ async function saveCurrentDay() {
   data._names = nameList;
   data._careEvery = careEvery; data._careCount = careCount;
   data._careInterval = careInterval; data._careDates = careDates;
-  try { await setDoc(doc(db, "dashboard", boardKey), data); } catch(e) {}
+  try { await db.collection("dashboard").doc(boardKey).set(data); } catch(e) {}
 }
 
 function scheduleSave() {

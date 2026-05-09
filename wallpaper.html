@@ -212,7 +212,19 @@
     border-radius: 14px;
     padding: 10px 12px;
   }
-  .wp-care .widget-title { margin-bottom: 6px; }
+  .wp-care .widget-title {
+    margin-bottom: 6px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .wp-care .widget-title:hover { color: rgba(255,255,255,0.5); }
+  .wp-care .care-arrow { font-size: 8px; transition: transform .25s; }
+  .wp-care .care-arrow.open { transform: rotate(90deg); }
+  .wp-care.collapsed #careList { display: none; }
+  .wp-care.collapsed .widget-title { margin-bottom: 0; }
   .care-person {
     display: flex; align-items: center; gap: 6px;
     padding: 3px 6px; border-radius: 8px;
@@ -360,8 +372,8 @@
       </div>
       <!-- Right: Care + Heatmap -->
       <div class="wp-right">
-        <div class="wp-care">
-          <div class="widget-title">關心總覽</div>
+        <div class="wp-care" id="careWidget">
+          <div class="widget-title" id="careTitle"><span class="care-arrow" id="careArrow">▶</span>關心總覽</div>
           <div id="careList"></div>
         </div>
         <div class="wp-heatmap">
@@ -629,6 +641,23 @@ function renderCare() {
     </div>`).join('');
 }
 
+// === Care Toggle ===
+function toggleCare() {
+  const w = document.getElementById('careWidget');
+  const a = document.getElementById('careArrow');
+  const open = w.classList.toggle('collapsed');
+  a.classList.toggle('open', !open);
+  localStorage.setItem('careCollapsed', open);
+}
+function initCareToggle() {
+  const collapsed = localStorage.getItem('careCollapsed') === 'true';
+  const w = document.getElementById('careWidget');
+  const a = document.getElementById('careArrow');
+  if (collapsed) { w.classList.add('collapsed'); a.classList.remove('open'); }
+  else { a.classList.add('open'); }
+  document.getElementById('careTitle').onclick = toggleCare;
+}
+
 // Events
 document.getElementById('loginBtn').onclick = () => doLogin();
 document.getElementById('loginKey').onkeydown = e => { if (e.key === 'Enter') doLogin(); };
@@ -676,6 +705,7 @@ document.getElementById('resetBtn').onclick = () => {
   document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
+  initCareToggle();
   loadDay(boardKey, dk(currentDate));
   // Trigger preload
   setTimeout(async () => {

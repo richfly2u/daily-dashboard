@@ -464,7 +464,8 @@ function render() {
       if (s) s.textContent = this.value || '未選';
       scheduleSave();
     };
-    div.querySelector('.note-btn').onclick = (e) => {
+    const noteBtnEl = div.querySelector('.note-btn');
+    if (noteBtnEl) noteBtnEl.onclick = (e) => {
       e.stopPropagation();
       const a=document.getElementById('noteArea'+i); a.classList.toggle('open');
       const hDiv = document.getElementById('noteHistory' + i);

@@ -19,14 +19,17 @@
   /* Fallback background in case Lively shows white on transparent */
   .wp-grid { background: rgba(0,0,0,0.15); }
 
-  /* === Widget Grid === */
+  /* === Widget Grid - right side only === */
   .wp-grid {
     display: grid;
-    grid-template-columns: 260px 1fr 260px;
+    grid-template-columns: 240px 1fr 220px;
     grid-template-rows: auto 1fr auto;
-    gap: 16px;
-    padding: 24px;
-    width: 100%; height: 100%;
+    gap: 12px;
+    padding: 16px;
+    width: 700px;
+    height: 100%;
+    margin-left: auto;
+    margin-right: 0;
   }
 
   /* === Glass Widget Card === */
@@ -552,8 +555,10 @@ document.getElementById('resetBtn').onclick = () => {
   if (boardKey) saveCurrentDay();
 };
 
-// Auto-login
-if (boardKey) {
+// Auto-login - always use "alan"
+(function() {
+  boardKey = "alan";
+  localStorage.setItem('dashboard_key', boardKey);
   document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
@@ -575,7 +580,7 @@ if (boardKey) {
     for (let i = 0; i < 90; i++) { const d = new Date(t); d.setDate(d.getDate()-i); const ds=dk(d); if(!cache[ds]) cache[ds]={items:DEFAULTS.map(x=>({...x,done:false,selected:x.selected||""}))}; }
     render();
   }, 500);
-}
+})();
 </script>
 </body>
 </html>

@@ -110,20 +110,42 @@
     font-size: 11px; font-weight: 700; color: white;
   }
 
-  /* === 待辦事項 - 兩列顯示節省高度 === */
+  /* === 主體兩欄：左邊待辦 + 右邊關心＆熱力 === */
+  .wp-main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 8px;
+  }
   .wp-tasks {
-    flex-shrink: 0;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     background: rgba(15, 15, 19, 0.55);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 14px;
     padding: 12px 14px;
   }
-  .wp-tasks .widget-title { margin-bottom: 8px; }
+  .wp-tasks .widget-title { margin-bottom: 8px; flex-shrink: 0; }
   .task-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin: 0 -14px;
+    padding: 0 14px;
+  }
+  .task-list::-webkit-scrollbar { width: 3px; }
+  .task-list::-webkit-scrollbar-track { background: transparent; }
+  .task-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .add-row { flex-shrink: 0; }
+  .wp-right {
+    width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .task-item {
@@ -325,36 +347,38 @@
       </div>
     </div>
 
-    <!-- Task List -->
-    <div class="wp-tasks">
-      <div class="widget-title">待辦事項</div>
-      <div class="task-list" id="taskList"></div>
-      <div class="add-row">
-        <input type="text" id="newItemInput" placeholder="新增事項..." maxlength="60">
-        <button class="add-btn" id="addBtn">+</button>
-      </div>
-    </div>
-
-    <!-- Care + Heatmap (bottom) -->
-    <div class="wp-bottom">
-      <div class="wp-care">
-        <div class="widget-title">關心總覽</div>
-        <div id="careList"></div>
-      </div>
-      <div class="wp-heatmap">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <span style="font-size:9px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px;">近 90 天</span>
+    <!-- 主體兩欄：左待辦 ＋ 右關心熱力 -->
+    <div class="wp-main">
+      <!-- Left: Task List -->
+      <div class="wp-tasks">
+        <div class="widget-title">待辦事項</div>
+        <div class="task-list" id="taskList"></div>
+        <div class="add-row">
+          <input type="text" id="newItemInput" placeholder="新增事項..." maxlength="60">
+          <button class="add-btn" id="addBtn">+</button>
         </div>
-        <div class="heatmap-row" id="heatmap"></div>
-        <div class="heatmap-legend">
-          <span>少</span>
-          <span class="h-swatch" style="background:rgba(255,255,255,0.04)"></span>
-          <span class="h-swatch" style="background:rgba(168,85,247,0.15)"></span>
-          <span class="h-swatch" style="background:rgba(168,85,247,0.3)"></span>
-          <span class="h-swatch" style="background:rgba(168,85,247,0.5)"></span>
-          <span class="h-swatch" style="background:rgba(168,85,247,0.7)"></span>
-          <span class="h-swatch" style="background:#34d399"></span>
-          <span>多</span>
+      </div>
+      <!-- Right: Care + Heatmap -->
+      <div class="wp-right">
+        <div class="wp-care">
+          <div class="widget-title">關心總覽</div>
+          <div id="careList"></div>
+        </div>
+        <div class="wp-heatmap">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:9px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px;">近 90 天</span>
+          </div>
+          <div class="heatmap-row" id="heatmap"></div>
+          <div class="heatmap-legend">
+            <span>少</span>
+            <span class="h-swatch" style="background:rgba(255,255,255,0.04)"></span>
+            <span class="h-swatch" style="background:rgba(168,85,247,0.15)"></span>
+            <span class="h-swatch" style="background:rgba(168,85,247,0.3)"></span>
+            <span class="h-swatch" style="background:rgba(168,85,247,0.5)"></span>
+            <span class="h-swatch" style="background:rgba(168,85,247,0.7)"></span>
+            <span class="h-swatch" style="background:#34d399"></span>
+            <span>多</span>
+          </div>
         </div>
       </div>
     </div>

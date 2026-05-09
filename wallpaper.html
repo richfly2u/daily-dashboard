@@ -316,25 +316,24 @@
       </div>
     </div>
 
-    <!-- Left: Stats -->
-    <div class="wp-stats widget">
-      <div class="widget-title">今日進度</div>
-      <div class="stat-row"><span class="stat-label">已完成</span><span class="stat-value blue" id="doneCount">0</span></div>
-      <div class="stat-row"><span class="stat-label">總項目</span><span class="stat-value" id="totalCount">10</span></div>
-      <div class="stat-row"><span class="stat-label">完成率</span><span class="stat-value purple" id="rateCount">0%</span></div>
-      <div class="progress-widget">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);">
-          <span>今日進度</span><span id="progressPct">0%</span>
+    <!-- Stats Row -->
+    <div class="wp-stats">
+      <div class="stat-card"><div class="stat-label">已完成</div><div class="stat-value blue" id="doneCount">0</div></div>
+      <div class="stat-card"><div class="stat-label">總項目</div><div class="stat-value green" id="totalCount">10</div></div>
+      <div class="stat-card"><div class="stat-label">完成率</div><div class="stat-value purple" id="rateCount">0%</div></div>
+      <div class="stat-card" style="border-left:1px solid rgba(255,255,255,0.05);padding-left:8px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="progress-widget" style="flex:1;">
+            <div class="progress-bar" style="flex:1;"><div class="progress-fill" id="progressFill"></div></div>
+            <span class="pct-label" id="progressPct">0%</span>
+          </div>
+          <span class="streak-badge" id="streakBadge" style="display:none;">🔥 <span id="streakCount">0</span>天</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      </div>
-      <div id="streakBadge" class="streak-badge" style="display:none;margin-top:12px;">
-        🔥 <span id="streakCount">0</span> 天連續
       </div>
     </div>
 
-    <!-- Center: Tasks -->
-    <div class="wp-tasks widget">
+    <!-- Task List -->
+    <div class="wp-tasks">
       <div class="widget-title">待辦事項</div>
       <div class="task-list" id="taskList"></div>
       <div class="add-row">

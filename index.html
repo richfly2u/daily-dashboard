@@ -147,6 +147,7 @@
   .cute-dialog h3 { font-size:18px; font-weight:700; margin-bottom:16px; color:#e8e8ed; text-align:center; }
   .cute-dialog .name-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; margin-bottom:4px; transition:background .2s; }
   .cute-dialog .name-item:hover { background: rgba(168,85,247,.08); }
+  .cute-dialog .name-index { width:22px; height:22px; border-radius:50%; background:rgba(168,85,247,.15); color:#a78bfa; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
   .cute-dialog .name-avatar { width:32px; height:32px; border-radius:50%; background: linear-gradient(135deg, #6c5ce7, #a855f7); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:white; flex-shrink:0; }
   .cute-dialog .name-text { flex:1; font-size:14px; color:#e8e8ed; cursor:text; padding:4px 0; }
   .cute-dialog .del-name-btn { background:none; border:none; color:#f87171; font-size:16px; cursor:pointer; padding:2px 6px; border-radius:6px; opacity:.5; transition:all .2s; }
@@ -255,7 +256,7 @@ const DEFAULTS = [
   {text:"做 10 分鐘運動",type:"text",locked:true},
   {text:"學一個小技能",type:"text",locked:true},
   {text:"和一個人深度聊天",type:"text",locked:true},
-  {text:"今日關心成全了誰？",type:"name-picker",selected:"",locked:true},
+  {text:"三省吾身",type:"text",locked:true},
   {text:"睡前寫下明天要做的事",type:"text",locked:true},
   {text:"今天成全了誰？",type:"name-picker",selected:"",locked:true}
 ];
@@ -767,6 +768,7 @@ function renderNameList() {
   container.innerHTML = nameList.map((n, i) => {
     const initial = n.charAt(0);
     return `<div class="name-item">
+      <span class="name-index">${i + 1}</span>
       <div class="name-avatar">${esc(initial)}</div>
       <span class="name-text" data-idx="${i}">${esc(n)}</span>
       <button class="del-name-btn" data-idx="${i}">✕</button>

@@ -37,12 +37,16 @@
   .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
-  .stat-card { background: #1a1a24; border-radius: 14px; padding: 14px; text-align: center; }
-  .stat-card .num { font-size: 24px; font-weight: 700; }
-  .stat-card .label { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card { background: #1a1a24; border-radius: 16px; padding: 16px 10px; text-align: center; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .stat-card.c1::before { background: linear-gradient(90deg, #34d399, #6ee7b7); }
+  .stat-card.c2::before { background: linear-gradient(90deg, #60a5fa, #93c5fd); }
+  .stat-card.c3::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .stat-card .num { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+  .stat-card .label { font-size: 11px; color: #888; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
   .stat-card .num.green { color: #34d399; }
   .stat-card .num.blue { color: #60a5fa; }
-  .stat-card .num.purple { color: #a78bfa; }
+  .stat-card .num.amber { color: #fbbf24; }
 
   .progress-wrap { background: #1a1a24; border-radius: 14px; padding: 16px; margin-bottom: 24px; }
   .progress-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
@@ -185,9 +189,9 @@
   </div>
 
   <div class="stats">
-    <div class="stat-card"><div class="num blue" id="doneCount">0</div><div class="label">已完成</div></div>
-    <div class="stat-card"><div class="num green" id="totalCount">0</div><div class="label">總項目</div></div>
-    <div class="stat-card"><div class="num purple" id="rateCount">0%</div><div class="label">完成率</div></div>
+    <div class="stat-card c1"><div class="num green" id="doneCount">0</div><div class="label">已完成</div></div>
+    <div class="stat-card c2"><div class="num blue" id="totalCount">0</div><div class="label">總項目</div></div>
+    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">運作天數</div></div>
   </div>
 
   <div class="progress-wrap">
@@ -266,6 +270,7 @@ let careDates = {};
 let careEvery = 1;
 let careCount = 1;
 let careInterval = 7;
+let startDate = '';
 const EPOCH = new Date('2025-01-01');
 
 function dk(d) { return d.toISOString().slice(0,10); }
@@ -301,6 +306,8 @@ async function saveDoc(extra) {
     data._careCount = careCount;
     data._careInterval = careInterval;
     data._careDates = careDates;
+    // Set _startDate on first save if not exists
+    if (!data._startDate) data._startDate = today();
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
     setStatus(true);
@@ -317,6 +324,7 @@ async function loadDay(key, dateStr) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
+  startDate = data._startDate || '';
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -360,6 +368,7 @@ async function saveCurrentDay() {
   data._careCount = careCount;
   data._careInterval = careInterval;
   data._careDates = careDates;
+  if (!data._startDate) data._startDate = today();
   try {
     await setDoc(doc(db, "dashboard", boardKey), data);
     setStatus(true);
@@ -414,7 +423,15 @@ function render() {
   document.getElementById('todayBtn').style.display = dk(currentDate) === today() ? 'none' : '';
   document.getElementById('doneCount').textContent = completed;
   document.getElementById('totalCount').textContent = total;
-  document.getElementById('rateCount').textContent = rate + '%';
+  // Calculate days running from _startDate
+  if (typeof startDate !== 'undefined' && startDate) {
+    const s = new Date(startDate);
+    const now = new Date();
+    const days = Math.floor((now - s) / (86400000)) + 1;
+    document.getElementById('daysCount').textContent = days;
+  } else {
+    document.getElementById('daysCount').textContent = '—';
+  }
   document.getElementById('progressPct').textContent = rate + '%';
   document.getElementById('progressFill').style.width = rate + '%';
   const list = document.getElementById('checklist');

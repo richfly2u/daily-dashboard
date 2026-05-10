@@ -92,7 +92,7 @@
   .stat-value { font-size: 18px; font-weight: 700; }
   .stat-value.green { color: #34d399; }
   .stat-value.blue { color: #60a5fa; }
-  .stat-value.purple { color: #a78bfa; }
+  .stat-value.amber { color: #fbbf24; }
 
   .progress-widget {
     display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 4px;
@@ -345,9 +345,9 @@
 
     <!-- Stats Row -->
     <div class="wp-stats">
-      <div class="stat-card"><div class="stat-label">已完成</div><div class="stat-value blue" id="doneCount">0</div></div>
-      <div class="stat-card"><div class="stat-label">總項目</div><div class="stat-value green" id="totalCount">10</div></div>
-      <div class="stat-card"><div class="stat-label">完成率</div><div class="stat-value purple" id="rateCount">0%</div></div>
+      <div class="stat-card"><div class="stat-label">已完成</div><div class="stat-value green" id="doneCount">0</div></div>
+      <div class="stat-card"><div class="stat-label">總項目</div><div class="stat-value blue" id="totalCount">10</div></div>
+      <div class="stat-card"><div class="stat-label">運作天數</div><div class="stat-value amber" id="daysCount">0</div></div>
       <div class="stat-card" style="border-left:1px solid rgba(255,255,255,0.05);padding-left:8px;">
         <div style="display:flex;align-items:center;gap:4px;">
           <div class="progress-widget" style="flex:1;">
@@ -430,6 +430,7 @@ let nameList = [];
 let saveTimer = null;
 let careDates = {};
 let careEvery = 1, careCount = 1, careInterval = 7;
+let startDate = '';
 const EPOCH = new Date('2025-01-01');
 const DAY_NAMES = ['日','一','二','三','四','五','六'];
 
@@ -485,6 +486,7 @@ async function loadDay(key, dateStr) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
+  startDate = data._startDate || '';
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     cache[dateStr] = { items: dayData.items.map(i => typeof i === 'string'
@@ -504,6 +506,7 @@ async function saveCurrentDay() {
   data._names = nameList;
   data._careEvery = careEvery; data._careCount = careCount;
   data._careInterval = careInterval; data._careDates = careDates;
+  if (!data._startDate) data._startDate = today();
   try { await db.collection("dashboard").doc(boardKey).set(data); } catch(e) {}
 }
 
@@ -525,7 +528,13 @@ function render() {
   document.getElementById('todayBtn').style.display = dk(currentDate) === today() ? 'none' : '';
   document.getElementById('doneCount').textContent = completed;
   document.getElementById('totalCount').textContent = total;
-  document.getElementById('rateCount').textContent = rate + '%';
+  // Calculate days running from _startDate
+  if (typeof startDate !== 'undefined' && startDate) {
+    const s = new Date(startDate);
+    const now = new Date();
+    const days = Math.floor((now - s) / (86400000)) + 1;
+    document.getElementById('daysCount').textContent = days;
+  }
   document.getElementById('progressPct').textContent = rate + '%';
   document.getElementById('progressFill').style.width = rate + '%';
 

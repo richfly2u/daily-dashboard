@@ -549,6 +549,19 @@ function render() {
       toggleWrap.style.display = 'none';
     }
   }
+  // Restore open notes and editing text after rebuild
+  if (typeof _openNotes !== 'undefined') {
+    for (const idx of Object.keys(_openNotes)) {
+      const a = document.getElementById('noteArea' + idx);
+      if (a) a.classList.add('open');
+    }
+  }
+  if (typeof _editingText !== 'undefined') {
+    for (const [idx, val] of Object.entries(_editingText)) {
+      const inp = document.querySelector('.item-text-input[data-idx="' + idx + '"]');
+      if (inp) inp.value = val;
+    }
+  }
 }
 
 // === Realtime Sync ===
@@ -573,6 +586,18 @@ function startRealtimeSync() {
       ? JSON.stringify(remoteToday.items) !== JSON.stringify(cache[todayKey]?.items)
       : !cache[todayKey];
     if (needRender) {
+      // Save open note states before rebuilding
+      window._openNotes = {};
+      document.querySelectorAll('.note-area.open').forEach(el => {
+        const idx = el.dataset.idx;
+        if (idx !== undefined) window._openNotes[idx] = true;
+      });
+      window._editingText = {};
+      document.querySelectorAll('.item-text-input').forEach(el => {
+        const idx = el.dataset.idx;
+        if (idx !== undefined) window._editingText[idx] = el.value;
+      });
+
       cache = {};
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;

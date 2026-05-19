@@ -564,20 +564,42 @@ function startRealtimeSync() {
     nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
     careEvery = data._careEvery || 1; careCount = data._careCount || 1;
     careInterval = data._careInterval || 7; careDates = data._careDates || {};
-    cache = {};
-    for (const [ds, dd] of Object.entries(data)) {
-      if (ds.startsWith('_')) continue;
-      if (dd && dd.items) cache[ds] = { items: dd.items.map(i => typeof i === 'string'
-        ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
-        : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+    // Don't clear cache — only update items for the current day if they changed
+    const todayKey = dk(currentDate);
+    const remoteToday = data[todayKey];
+    if (remoteToday && remoteToday.items) {
+      const localDay = cache[todayKey];
+      if (localDay && JSON.stringify(localDay.items) !== JSON.stringify(remoteToday.items)) {
+        cache = {};
+        for (const [ds, dd] of Object.entries(data)) {
+          if (ds.startsWith('_')) continue;
+          if (dd && dd.items) cache[ds] = { items: dd.items.map(i => typeof i === 'string'
+            ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+            : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+        }
+        render();
+      }
+    } else if (!cache[todayKey]) {
+      // First sync: fill cache if today isn't loaded yet
+      for (const [ds, dd] of Object.entries(data)) {
+        if (ds.startsWith('_')) continue;
+        if (dd && dd.items) cache[ds] = { items: dd.items.map(i => typeof i === 'string'
+          ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+          : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+      }
+      const d2 = new Date();
+      for (let i = 0; i < 90; i++) {
+        const d3 = new Date(d2); d3.setDate(d3.getDate()-i);
+        const ds = dk(d3);
+        if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+      }
+      if (!cache[todayKey]) {
+        cache[todayKey] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+      }
+      render();
     }
-    const d2 = new Date();
-    for (let i = 0; i < 90; i++) {
-      const d3 = new Date(d2); d3.setDate(d3.getDate()-i);
-      const ds = dk(d3);
-      if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
-    }
-    render();
+    renderHeatmap();
+    renderStreak();
   });
 }
 

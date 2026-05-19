@@ -582,6 +582,10 @@ function startRealtimeSync() {
     careInterval = data._careInterval || 7; careDates = data._careDates || {};
     const todayKey = dk(currentDate);
     const remoteToday = data[todayKey];
+    // Don't rebuild while user is editing notes or text
+    const hasOpenNote = document.querySelector('.note-area.open') !== null;
+    const hasEditing = document.querySelector('.item-text-input') !== null;
+    if (hasOpenNote || hasEditing) return;
     const needRender = remoteToday && remoteToday.items
       ? JSON.stringify(remoteToday.items) !== JSON.stringify(cache[todayKey]?.items)
       : !cache[todayKey];

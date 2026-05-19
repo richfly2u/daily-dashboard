@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="行動儀表板">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192-android.png">
 <title>每日行動儀表板</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -166,7 +166,7 @@
 <body>
 
 <div class="login-screen" id="loginScreen">
-  <div style="font-size:48px;margin-bottom:16px;">📋</div>
+  <div style="margin-bottom:16px;"><img src="icon-192-android.png" alt="Android" style="width:72px;height:72px;border-radius:18px;"></div>
   <h2>每日行動儀表板</h2>
   <p>輸入儀表板名稱</p>
   <input type="text" id="loginKey" placeholder="alan" maxlength="20" autocomplete="off">
@@ -176,7 +176,7 @@
 
 <div class="app" id="mainApp" style="display:none">
   <div class="header">
-    <h1><span class="status-dot offline" id="statusDot"></span>📋 <span id="boardName">儀表板</span></h1>
+    <h1><span class="status-dot offline" id="statusDot"></span><img src="icon-192-android.png" alt="" style="width:28px;height:28px;border-radius:7px;vertical-align:middle;margin-right:6px;"> <span id="boardName">儀表板</span></h1>
     <div class="streak-badge" id="streakBadge" style="display:none">
       <span class="fire">🔥</span><span id="streakCount">0</span>天
     </div>

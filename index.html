@@ -12,8 +12,10 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Inter', sans-serif; background: linear-gradient(160deg, #0f0f13 0%, #14141f 30%, #1a1025 60%, #0f0f13 100%); color: #e8e8ed; min-height: 100vh; }
-  .app { max-width: 720px; margin: 0 auto; padding: 24px 16px 40px; }
+  body { font-family: 'Inter', sans-serif; background: linear-gradient(160deg, #0a0a1a 0%, #12102a 20%, #1a0a30 40%, #162040 60%, #0f1a3a 80%, #0a0a1a 100%); color: #e8e8ed; min-height: 100vh; position: relative; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; top: -20%; left: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse at center, rgba(108,92,231,0.08) 0%, rgba(168,85,247,0.04) 30%, transparent 70%); pointer-events: none; z-index: 0; }
+  body::after { content: ''; position: fixed; bottom: -10%; right: -10%; width: 50%; height: 50%; background: radial-gradient(ellipse at center, rgba(96,165,250,0.06) 0%, rgba(147,197,253,0.03) 30%, transparent 70%); pointer-events: none; z-index: 0; }
+  .app { max-width: 720px; margin: 0 auto; padding: 24px 16px 40px; position: relative; z-index: 1; }
 
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
   .header h1 { font-size: 22px; font-weight: 700; }
@@ -21,16 +23,16 @@
   .status-dot.online { background: #34d399; }
   .status-dot.offline { background: #f59e0b; }
 
-  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; padding: 20px; }
+  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; padding: 20px; position: relative; z-index: 1; }
   .login-screen h2 { font-size: 24px; margin-bottom: 8px; }
   .login-screen p { color: #888; font-size: 14px; margin-bottom: 24px; }
-  .login-screen input { background: rgba(26,26,36,0.35); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 18px; color: #e8e8ed; font-size: 18px; text-align: center; outline: none; width: 200px; }
+  .login-screen input { background: rgba(255,255,255,0.06); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; padding: 14px 18px; color: #e8e8ed; font-size: 18px; text-align: center; outline: none; width: 200px; }
   .login-screen input:focus { border-color: #6c5ce7; }
   .login-screen .login-btn { background: linear-gradient(135deg, #6c5ce7, #a855f7); border: none; color: white; padding: 12px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
   .login-screen .hint { color: #555; font-size: 12px; margin-top: 16px; }
 
   .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; }
-  .date-nav { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.35); border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3); }
+  .date-nav { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15); }
   .date-nav .date-label { font-size: 16px; font-weight: 600; }
   .date-nav .date-label .weekday { color: #888; font-weight: 400; font-size: 13px; margin-left: 6px; }
   .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
@@ -38,7 +40,7 @@
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; position: relative; }
   .stats::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; height: 60px; background: radial-gradient(ellipse at center, rgba(108,92,231,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
-  .stat-card { background: rgba(255,255,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.35); border-radius: 16px; padding: 16px 10px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3); z-index: 1; }
+  .stat-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 16px 10px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15); z-index: 1; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
   .stat-card.c1::before { background: linear-gradient(90deg, rgba(52,211,153,0.6), rgba(110,231,183,0.3)); }
   .stat-card.c2::before { background: linear-gradient(90deg, rgba(96,165,250,0.6), rgba(147,197,253,0.3)); }
@@ -49,7 +51,7 @@
   .stat-card .num.blue { color: #60a5fa; }
   .stat-card .num.amber { color: #fbbf24; }
 
-  .progress-wrap { background: rgba(255,255,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.35); border-radius: 14px; padding: 16px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3); }
+  .progress-wrap { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 16px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15); }
   .progress-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
   .progress-top .pct { font-weight: 700; color: #6c5ce7; }
   .progress-bar { height: 6px; background: #282838; border-radius: 3px; overflow: hidden; }
@@ -61,7 +63,7 @@
   .checklist-wrap .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; transform: scale(1.08); }
   .checklist-wrap .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 700; }
   .checklist { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
-  .check-item { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; padding: 0 12px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15); }
+  .check-item { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; padding: 0 12px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.12); }
   .check-item:hover { border-color: rgba(255,255,255,0.12); }
   .check-item.done { opacity: 0.7; }
   .check-item.done .item-text { text-decoration: line-through; color: #666; }
@@ -91,11 +93,11 @@
   .nh-text { color: #777; word-break: break-word; }
   .nh-empty { font-size: 11px; color: #444; font-style: italic; }
   .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
-  .add-wrap input { flex: 1; background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; }
+  .add-wrap input { flex: 1; background: rgba(255,255,255,0.06); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; }
   .add-wrap input:focus { border-color: #6c5ce7; }
   .add-wrap .add-btn { background: #6c5ce7; border: none; color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; }
 
-  .heatmap-section { background: rgba(255,255,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.35); border-radius: 14px; padding: 16px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3); }
+  .heatmap-section { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 16px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15); }
   .heatmap-section h3 { font-size: 13px; color: #888; margin-bottom: 12px; }
   .heatmap { display: flex; flex-wrap: wrap; gap: 3px; }
   .heatmap .day { width: 12px; height: 12px; border-radius: 2px; background: #0f0f13; }
@@ -127,11 +129,11 @@
   .edit-mode .cb { pointer-events: none; }
   .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #282838; border-top-color: #6c5ce7; border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .care-toggle { width:100%;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 14px;margin-top:4px;margin-bottom:16px;color:#a78bfa;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .2s; }
+  .care-toggle { width:100%;background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 14px;margin-top:4px;margin-bottom:16px;color:#a78bfa;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .2s; }
   .care-toggle:hover { border-color:#a78bfa; }
   .care-toggle .care-arrow { font-size:11px;transition:transform .3s; }
   .care-toggle.open .care-arrow { transform:rotate(180deg); }
-  .care-overview { display:none;background:#151520;border:1px solid #282838;border-radius:12px;padding:14px;margin-bottom:16px; }
+  .care-overview { display:none;background:rgba(255,255,255,0.04); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.12); border-radius:12px;padding:14px;margin-bottom:16px; }
   .care-overview.open { display:block; }
   .care-overview table { width:100%;border-collapse:collapse;font-size:12px; }
   .care-overview th { text-align:left;color:#666;font-weight:600;font-size:11px;padding:6px 4px;border-bottom:1px solid #282838; }
@@ -555,7 +557,8 @@ function startRealtimeSync() {
   if (syncUnsub) syncUnsub();
   const ref = doc(db, "dashboard", boardKey);
   let ready = false;
-  setTimeout(() => { ready = true; }, 3000);
+  let lastRenderKey = '';
+  setTimeout(() => { ready = true; }, 1000);
   syncUnsub = onSnapshot(ref, { includeMetadataChanges: true }, snap => {
     if (!snap.exists || !ready) return;
     if (snap.metadata.hasPendingWrites) return;
@@ -564,37 +567,26 @@ function startRealtimeSync() {
     nameList = data._names && data._names.length ? data._names : DEFAULT_NAMES;
     careEvery = data._careEvery || 1; careCount = data._careCount || 1;
     careInterval = data._careInterval || 7; careDates = data._careDates || {};
-    // Don't clear cache — only update items for the current day if they changed
     const todayKey = dk(currentDate);
     const remoteToday = data[todayKey];
-    if (remoteToday && remoteToday.items) {
-      const localDay = cache[todayKey];
-      if (localDay && JSON.stringify(localDay.items) !== JSON.stringify(remoteToday.items)) {
-        cache = {};
-        for (const [ds, dd] of Object.entries(data)) {
-          if (ds.startsWith('_')) continue;
-          if (dd && dd.items) cache[ds] = { items: dd.items.map(i => typeof i === 'string'
-            ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
-            : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
-        }
-        render();
-      }
-    } else if (!cache[todayKey]) {
-      // First sync: fill cache if today isn't loaded yet
+    const needRender = remoteToday && remoteToday.items
+      ? JSON.stringify(remoteToday.items) !== JSON.stringify(cache[todayKey]?.items)
+      : !cache[todayKey];
+    if (needRender) {
+      cache = {};
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;
         if (dd && dd.items) cache[ds] = { items: dd.items.map(i => typeof i === 'string'
           ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
           : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
       }
-      const d2 = new Date();
-      for (let i = 0; i < 90; i++) {
-        const d3 = new Date(d2); d3.setDate(d3.getDate()-i);
-        const ds = dk(d3);
-        if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
-      }
       if (!cache[todayKey]) {
-        cache[todayKey] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+        for (let i = 0; i < 90; i++) {
+          const d3 = new Date(); d3.setDate(d3.getDate()-i);
+          const ds = dk(d3);
+          if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+        }
+        if (!cache[todayKey]) cache[todayKey] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
       }
       render();
     }

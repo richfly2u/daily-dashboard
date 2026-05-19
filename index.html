@@ -12,7 +12,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Inter', sans-serif; background: #0f0f13; color: #e8e8ed; min-height: 100vh; }
+  body { font-family: 'Inter', sans-serif; background: linear-gradient(160deg, #0f0f13 0%, #14141f 30%, #1a1025 60%, #0f0f13 100%); color: #e8e8ed; min-height: 100vh; }
   .app { max-width: 720px; margin: 0 auto; padding: 24px 16px 40px; }
 
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
@@ -36,8 +36,9 @@
   .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
   .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
 
-  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
-  .stat-card { background: rgba(26,26,36,0.35); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px 10px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05); }
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; position: relative; }
+  .stats::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; height: 60px; background: radial-gradient(ellipse at center, rgba(108,92,231,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .stat-card { background: rgba(26,26,36,0.35); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px 10px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05); z-index: 1; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
   .stat-card.c1::before { background: linear-gradient(90deg, rgba(52,211,153,0.6), rgba(110,231,183,0.3)); }
   .stat-card.c2::before { background: linear-gradient(90deg, rgba(96,165,250,0.6), rgba(147,197,253,0.3)); }

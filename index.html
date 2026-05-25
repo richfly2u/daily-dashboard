@@ -510,6 +510,7 @@ function render() {
     const selEl = div.querySelector('.name-select');
     if (selEl) selEl.onchange = function() {
       item.selected = this.value;
+      updateCareDates(this.value);
       const s = div.querySelector('.item-selected');
       if (s) s.textContent = this.value || '未選';
       scheduleSave();
@@ -653,6 +654,13 @@ function startRealtimeSync() {
   });
 }
 
+function updateCareDates(selected) {
+  if (!selected) return;
+  const names = selected.split(',').filter(Boolean);
+  const todayStr = today();
+  names.forEach(n => { careDates[n] = todayStr; });
+}
+
 function ensureTodayNamePickerSelected(dateStr) {
   const day = cache[dateStr];
   if (!day || !day.items) return;
@@ -661,6 +669,7 @@ function ensureTodayNamePickerSelected(dateStr) {
   const suggestions = getCareSuggestions();
   if (suggestions.length) {
     np.selected = suggestions.join(',');
+    updateCareDates(np.selected);
   }
 }
 

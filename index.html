@@ -364,7 +364,9 @@ async function loadDay(key, dateStr) {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
   // Force sync: directly set name-picker selected from raw Firestore data
-  if (dayData && dayData.items && Array.isArray(dayData.items) && dayData.items.length > 9) {
+  const diagDayData = dayData ? JSON.stringify(dayData).substring(0,200) : 'undefined';
+  alert('dayData type=' + typeof dayData + ' raw=' + diagDayData);
+  if (dayData && dayData.items && Array.isArray(dayData.items)) {
     const storedRaw = dayData.items[9]; // name-picker is always last item
     const cacheItems = cache[dateStr] && cache[dateStr].items;
     if (cacheItems && cacheItems.length > 9) {

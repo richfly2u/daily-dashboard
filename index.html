@@ -684,38 +684,9 @@ function getCareSuggestions() {
   const diff = getDateDiffDays();
   const isCareDay = (diff % careEvery) === 0;
   if (!isCareDay) return [];
-  const now = new Date();
-  const todayStr = dk(now);
-  // Get the name-picker item from today's cache to find who's already selected
-  const todayCache = cache[todayStr];
-  const todaySelected = todayCache && todayCache.items
-    ? todayCache.items.filter(i => i.type === 'name-picker').map(i => i.selected).filter(Boolean).join(',')
-    : '';
-  const todaySelectedNames = todaySelected ? todaySelected.split(',').filter(Boolean) : [];
-  const eligible = nameList.filter(n => {
-    const last = careDates[n];
-    if (!last) return true;
-    // If careInterval is 1 (daily rotation): everyone is eligible every day
-    if (careInterval === 1) {
-      return true;
-    }
-    const lastD = new Date(last);
-    return Math.round((now - lastD) / 86400000) >= careInterval;
-  });
-  const scored = eligible.map(n => ({
-    name: n,
-    daysSince: careDates[n] ? Math.round((now - new Date(careDates[n])) / 86400000) : 999,
-    isTodaySelected: todaySelectedNames.includes(n)  // boost if already selected today
-  }));
-  scored.sort((a, b) => {
-    // Already-selected-today people get priority
-    if (a.isTodaySelected !== b.isTodaySelected) return a.isTodaySelected ? -1 : 1;
-    // Then sort by days since last care (longest first)
-    if (a.daysSince !== b.daysSince) return b.daysSince - a.daysSince;
-    // Finally by list index
-    return nameList.indexOf(a.name) - nameList.indexOf(b.name);
-  });
-  return scored.slice(0, Math.min(careCount, scored.length)).map(s => s.name);
+  // Simple daily rotation: pick one person per day based on date offset
+  const idx = diff % nameList.length;
+  return [nameList[idx]];
 }
 function getTodayPerson() {
   const suggestions = getCareSuggestions();

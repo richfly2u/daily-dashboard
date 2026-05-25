@@ -67,6 +67,7 @@
   .check-item:hover { border-color: rgba(255,255,255,0.12); }
   .check-item.done { opacity: 0.7; }
   .check-item.done .item-text { text-decoration: line-through; color: #666; }
+  .check-item.readonly { opacity: 0.5; pointer-events: none; }
   .check-item .cb { width: 22px; height: 22px; border: 2px solid #444; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
   .check-item.done .cb { border-color: #34d399; background: #34d399; color: #0f0f13; }
   .check-item .item-text { flex: 1; padding: 12px 0; font-size: 14px; }
@@ -430,6 +431,7 @@ function render() {
   const items = day.items;
   const total = items.length, completed = items.filter(i => i.done).length;
   const rate = total ? Math.round(completed/total*100) : 0;
+  const isToday = dk(currentDate) === dk(new Date());
   document.getElementById('dateLabel').textContent = `${currentDate.getFullYear()}/${currentDate.getMonth()+1}/${currentDate.getDate()}`;
   document.getElementById('weekdayLabel').textContent = `週${['日','一','二','三','四','五','六'][currentDate.getDay()]}`;
   document.getElementById('todayBtn').style.display = dk(currentDate) === today() ? 'none' : '';
@@ -453,7 +455,8 @@ function render() {
     const text = item.text, done = item.done, notes = item.notes || '';
     const locked = item.locked !== false;
     const div = document.createElement('div');
-    div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '');
+    const ro = !isToday;
+    div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '') + (ro ? ' readonly' : '');
     let extraHTML = '';
     if (item.type === 'name-picker') {
       const names = item.selected ? item.selected.split(',').filter(Boolean) : [];
@@ -476,33 +479,40 @@ function render() {
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
       `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
-    div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
-    if (item.type !== 'name-picker') {
-      div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
-    }
-    const selEl = div.querySelector('.name-select');
-    if (selEl) selEl.onchange = function() {
-      item.selected = this.value;
-      updateCareDates(this.value);
-      const s = div.querySelector('.item-selected');
-      if (s) s.textContent = this.value || '未選';
-      scheduleSave();
-    };
-    const noteBtnEl = div.querySelector('.note-btn');
-    if (noteBtnEl) noteBtnEl.onclick = (e) => {
-      e.stopPropagation();
-      const a=document.getElementById('noteArea'+i); a.classList.toggle('open');
-      const hDiv = document.getElementById('noteHistory' + i);
-      if (hDiv) {
-        const h = getHistoryNotes(i);
-        hDiv.innerHTML = !h.length ? '<div class="nh-empty">前兩天無記錄</div>'
-          : h.map(x => '<div class="nh-item"><span class="nh-date">' + esc(x.date) + '</span>'
-            + (x.selected ? '<span class="nh-person">👤' + esc(x.selected) + '</span>' : '')
-            + '<span class="nh-text">' + esc(x.notes) + '</span></div>').join('');
+    if (!ro) {
+      div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
+      if (item.type !== 'name-picker') {
+        div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
       }
-      a.querySelector('textarea').focus();
-    };
+      const selEl = div.querySelector('.name-select');
+      if (selEl) selEl.onchange = function() {
+        item.selected = this.value;
+        updateCareDates(this.value);
+        const s = div.querySelector('.item-selected');
+        if (s) s.textContent = this.value || '未選';
+        scheduleSave();
+      };
+      const noteBtnEl = div.querySelector('.note-btn');
+      if (noteBtnEl) noteBtnEl.onclick = (e) => {
+        e.stopPropagation();
+        const a=document.getElementById('noteArea'+i); a.classList.toggle('open');
+        const hDiv = document.getElementById('noteHistory' + i);
+        if (hDiv) {
+          const h = getHistoryNotes(i);
+          hDiv.innerHTML = !h.length ? '<div class="nh-empty">前兩天無記錄</div>'
+            : h.map(x => '<div class="nh-item"><span class="nh-date">' + esc(x.date) + '</span>'
+              + (x.selected ? '<span class="nh-person">👤' + esc(x.selected) + '</span>' : '')
+              + '<span class="nh-text">' + esc(x.notes) + '</span></div>').join('');
+        }
+        a.querySelector('textarea').focus();
+      };
+    }
     div.querySelector('.lock-btn').onclick = e => { e.stopPropagation(); toggleLock(i); };
+    if (ro) {
+      div.querySelector('.edit-btn').style.display = 'none';
+      div.querySelector('.del-btn').style.display = 'none';
+      div.querySelector('.lock-btn').style.display = 'none';
+    }
     div.querySelector('.edit-btn').onclick = e => {
       e.stopPropagation();
       const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return;

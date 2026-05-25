@@ -449,10 +449,13 @@ function render() {
     div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '');
     let extraHTML = '';
     if (item.type === 'name-picker') {
+      console.debug('name-picker check: item.selected=' + JSON.stringify(item.selected) + ' (type=' + typeof item.selected + ')');
+      // Use the stored selected value from Firestore (set by cron job)
+      // Only recalculate if it's empty (new day with no data yet)
       if (!item.selected) {
         item.selected = getTodayPerson();
       }
-      // If we got a person, save to careDates for the overview panel
+      // Track in careDates for the overview panel display
       if (item.selected) {
         item.selected.split(',').filter(Boolean).forEach(s => { careDates[s] = dk(new Date()); });
       }

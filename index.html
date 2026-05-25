@@ -670,6 +670,7 @@ function ensureTodayNamePickerSelected(dateStr) {
   if (suggestions.length) {
     np.selected = suggestions.join(',');
     updateCareDates(np.selected);
+    scheduleSave();
   }
 }
 

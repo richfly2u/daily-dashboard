@@ -872,8 +872,8 @@ async function doLogin() {
   startRealtimeSync();
 }
 
-document.getElementById('prevDay').onclick = () => { currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
-document.getElementById('nextDay').onclick = () => { currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
+document.getElementById('prevDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
+document.getElementById('nextDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
 document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); render(); };
 document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
 document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };

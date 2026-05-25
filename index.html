@@ -665,7 +665,7 @@ function ensureTodayNamePickerSelected(dateStr) {
   const day = cache[dateStr];
   if (!day || !day.items) return;
   const np = day.items.find(i => i.type === 'name-picker');
-  if (!np || np.selected) return;
+  if (!np) return;
   const suggestions = getCareSuggestions();
   if (suggestions.length) {
     np.selected = suggestions.join(',');

@@ -680,7 +680,10 @@ function ensureTodayNamePickerSelected(dateStr) {
 function getDateDiffDays() {
   const ref = new Date(EPOCH);
   const now = new Date();
-  return Math.round((now - ref) / 86400000);
+  // Use UTC to avoid timezone drift
+  const refUTC = Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate());
+  const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((nowUTC - refUTC) / 86400000);
 }
 function getCareSuggestions() {
   if (!nameList.length) return [];

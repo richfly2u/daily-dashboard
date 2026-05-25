@@ -364,27 +364,11 @@ async function loadDay(key, dateStr) {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
   // Force sync: copy stored selected from raw Firestore data (bypass cache mutation)
-  // Use index-based lookup since Web SDK field names may differ
-  if (dayData && dayData.items && Array.isArray(dayData.items)) {
-    const cacheItems = cache[dateStr] && cache[dateStr].items;
-    if (cacheItems && cacheItems.length === dayData.items.length) {
-      // Find the name-picker by its position in the DEFAULTS array
-      const npIdx = DEFAULTS.findIndex(d => d.type === 'name-picker');
-      if (npIdx >= 0 && npIdx < dayData.items.length) {
-        const storedItem = dayData.items[npIdx];
-        const cacheItem = cacheItems[npIdx];
-        // Check if this is indeed a name-picker (by text or any available field)
-        if (cacheItem && cacheItem.type === 'name-picker' && storedItem) {
-          // Walk through all properties of storedItem to find 'selected'
-          for (const key of Object.keys(storedItem)) {
-            if (key.toLowerCase().includes('select') && storedItem[key]) {
-              cacheItem.selected = storedItem[key];
-              break;
-            }
-          }
-        }
-      }
-    }
+  // DIAGNOSTIC: dump cache items after loadDay to see what happened
+  const diagItems = cache[dateStr] && cache[dateStr].items;
+  if (diagItems) {
+    const diagNp = diagItems.findIndex(i => i.type === 'name-picker');
+    alert('loadDay diag: items=' + diagItems.length + ' npIdx=' + diagNp + ' npSelected=' + (diagNp >= 0 ? diagItems[diagNp].selected : 'N/A'));
   }
   render();
 }

@@ -391,12 +391,8 @@ async function loadDay(key, dateStr) {
       }
     }
   }
-  // DIAGNOSTIC: dump cache items after loadDay to see what happened
-  const diagItems = cache[dateStr] && cache[dateStr].items;
-  if (diagItems) {
-    const diagNp = diagItems.findIndex(i => i.type === 'name-picker');
-    alert('loadDay diag: items=' + diagItems.length + ' npIdx=' + diagNp + ' npSelected=' + (diagNp >= 0 ? diagItems[diagNp].selected : 'N/A'));
-  }
+  // Auto-fill today's name-picker if empty
+  ensureTodayNamePickerSelected(dateStr);
   render();
 }
 
@@ -445,6 +441,7 @@ async function preloadRecent(key) {
     const ds = dk(d);
     if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
+  ensureTodayNamePickerSelected(dk(new Date()));
   renderHeatmap();
   renderStreak();
 }
@@ -648,11 +645,23 @@ function startRealtimeSync() {
         }
         if (!cache[todayKey]) cache[todayKey] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
       }
+      ensureTodayNamePickerSelected(todayKey);
       render();
     }
     renderHeatmap();
     renderStreak();
   });
+}
+
+function ensureTodayNamePickerSelected(dateStr) {
+  const day = cache[dateStr];
+  if (!day || !day.items) return;
+  const np = day.items.find(i => i.type === 'name-picker');
+  if (!np || np.selected) return;
+  const suggestions = getCareSuggestions();
+  if (suggestions.length) {
+    np.selected = suggestions.join(',');
+  }
 }
 
 function getDateDiffDays() {

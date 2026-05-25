@@ -668,6 +668,7 @@ function ensureTodayNamePickerSelected(dateStr) {
   const np = day.items.find(i => i.type === 'name-picker');
   if (!np) return;
   const suggestions = getCareSuggestions();
+  console.log('DEBUG ensureTodayNamePickerSelected np.selected before=' + np.selected + ' suggestions=' + JSON.stringify(suggestions) + ' nameList=' + JSON.stringify(nameList.slice(0,3)));
   if (suggestions.length) {
     np.selected = suggestions.join(',');
     updateCareDates(np.selected);

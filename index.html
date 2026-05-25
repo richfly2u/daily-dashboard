@@ -371,16 +371,17 @@ async function loadDay(key, dateStr) {
 async function saveCurrentDay() {
   const day = cache[dk(currentDate)];
   if (!day) return;
-  const data = await loadDoc();
-  data[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
-  data._names = nameList.length ? nameList : DEFAULT_NAMES;
-  data._careEvery = careEvery;
-  data._careCount = careCount;
-  data._careInterval = careInterval;
-  data._careDates = careDates;
-  if (!data._startDate) data._startDate = today();
+  const ref = doc(db, "dashboard", boardKey);
+  const update = {};
+  update[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
+  update._names = nameList.length ? nameList : DEFAULT_NAMES;
+  update._careEvery = careEvery;
+  update._careCount = careCount;
+  update._careInterval = careInterval;
+  update._careDates = careDates;
+  update._startDate = today();
   try {
-    await setDoc(doc(db, "dashboard", boardKey), data);
+    await setDoc(ref, update, { merge: true });
     setStatus(true);
   } catch(e) { setStatus(false); }
 }
@@ -603,12 +604,17 @@ function startRealtimeSync() {
         if (idx !== undefined) window._editingText[idx] = el.value;
       });
 
-      cache = {};
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;
-        if (dd && dd.items) cache[ds] = { items: dd.items.map(i => typeof i === 'string'
-          ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
-          : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+        if (dd && dd.items) {
+          // Only update from remote if we don't have local unpersisted changes
+          const local = cache[ds];
+          if (!local || JSON.stringify(local.items) === JSON.stringify(cache[ds]?.items)) {
+            cache[ds] = { items: dd.items.map(i => typeof i === 'string'
+              ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+              : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+          }
+        }
       }
       if (!cache[todayKey]) {
         for (let i = 0; i < 90; i++) {
@@ -796,13 +802,7 @@ function showNameDialog() {
     careCount = parseInt(document.getElementById('careCountInput').value) || 1;
     careInterval = parseInt(document.getElementById('careIntervalInput').value) || 7;
     const ref = doc(db, "dashboard", boardKey);
-    const data = await loadDoc();
-    data._names = nameList.length ? nameList : DEFAULT_NAMES;
-    data._careEvery = careEvery;
-    data._careCount = careCount;
-    data._careInterval = careInterval;
-    data._careDates = careDates;
-    try { await setDoc(ref, data); setStatus(true); } catch(e) { setStatus(false); }
+    try { await setDoc(ref, { _names: nameList.length ? nameList : DEFAULT_NAMES, _careEvery: careEvery, _careCount: careCount, _careInterval: careInterval, _careDates: careDates }, { merge: true }); setStatus(true); } catch(e) { setStatus(false); }
     dialog.style.display = 'none';
   };
   populateCareInputs();

@@ -237,7 +237,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRazQsleeT4H4Nt6VrqI1KGlfVenc",
@@ -292,7 +292,7 @@ function makeDay(items) {
 async function loadDoc() {
   try {
     const ref = doc(db, "dashboard", boardKey);
-    const snap = await getDoc(ref, {source:'server'});
+    const snap = await getDocFromServer(ref);
     return snap.exists() ? snap.data() : {};
   } catch(e) {
     console.warn('Load failed:', e);

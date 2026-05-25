@@ -357,8 +357,19 @@ async function loadDay(key, dateStr) {
       if (!migrated[j].text && migrated[j].type === def.type) migrated[j].text = def.text;
     });
     cache[dateStr] = { items: migrated };
+  // DEBUG: name-picker selected after loadDay
+  const npItem = migrated.find(i => i.type === 'name-picker');
+  if (npItem) console.log('loadDay name-picker selected=' + JSON.stringify(npItem.selected));
   } else {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
+  }
+  // Force sync: copy stored selected from raw Firestore data (bypass cache mutation)
+  if (dayData && dayData.items) {
+    const storedNp = dayData.items.find(i => i.type === 'name-picker');
+    const cacheNp = cache[dateStr] && cache[dateStr].items.find(i => i.type === 'name-picker');
+    if (storedNp && cacheNp && storedNp.selected) {
+      cacheNp.selected = storedNp.selected;
+    }
   }
   render();
 }
@@ -449,15 +460,11 @@ function render() {
     div.className = 'check-item' + (done ? ' done' : '') + (notes ? ' has-note' : '');
     let extraHTML = '';
     if (item.type === 'name-picker') {
-      console.debug('name-picker check: item.selected=' + JSON.stringify(item.selected) + ' (type=' + typeof item.selected + ')');
-      // Use the stored selected value from Firestore (set by cron job)
-      // Only recalculate if it's empty (new day with no data yet)
-      if (!item.selected) {
-        item.selected = getTodayPerson();
-      }
-      // Track in careDates for the overview panel display
-      if (item.selected) {
-        item.selected.split(',').filter(Boolean).forEach(s => { careDates[s] = dk(new Date()); });
+      // Always trust Firestore-stored selected value
+      // Ensure careDates reflects today's actual selection to prevent
+      // getCareSuggestions from picking a different person
+      if (item.selected && !careDates[item.selected]) {
+        careDates[item.selected] = dk(currentDate);
       }
       const names = item.selected ? item.selected.split(',').filter(Boolean) : [];
       if (careCount > 1 || names.length > 1) {
@@ -639,17 +646,36 @@ function getCareSuggestions() {
   const isCareDay = (diff % careEvery) === 0;
   if (!isCareDay) return [];
   const now = new Date();
+  const todayStr = dk(now);
+  // Get the name-picker item from today's cache to find who's already selected
+  const todayCache = cache[todayStr];
+  const todaySelected = todayCache && todayCache.items
+    ? todayCache.items.filter(i => i.type === 'name-picker').map(i => i.selected).filter(Boolean).join(',')
+    : '';
+  const todaySelectedNames = todaySelected ? todaySelected.split(',').filter(Boolean) : [];
   const eligible = nameList.filter(n => {
     const last = careDates[n];
     if (!last) return true;
+    // If careInterval is 1 (daily rotation): everyone is eligible every day
+    if (careInterval === 1) {
+      return true;
+    }
     const lastD = new Date(last);
     return Math.round((now - lastD) / 86400000) >= careInterval;
   });
   const scored = eligible.map(n => ({
     name: n,
-    daysSince: careDates[n] ? Math.round((now - new Date(careDates[n])) / 86400000) : 999
+    daysSince: careDates[n] ? Math.round((now - new Date(careDates[n])) / 86400000) : 999,
+    isTodaySelected: todaySelectedNames.includes(n)  // boost if already selected today
   }));
-  scored.sort((a, b) => (a.daysSince !== b.daysSince ? b.daysSince - a.daysSince : nameList.indexOf(a.name) - nameList.indexOf(b.name)));
+  scored.sort((a, b) => {
+    // Already-selected-today people get priority
+    if (a.isTodaySelected !== b.isTodaySelected) return a.isTodaySelected ? -1 : 1;
+    // Then sort by days since last care (longest first)
+    if (a.daysSince !== b.daysSince) return b.daysSince - a.daysSince;
+    // Finally by list index
+    return nameList.indexOf(a.name) - nameList.indexOf(b.name);
+  });
   return scored.slice(0, Math.min(careCount, scored.length)).map(s => s.name);
 }
 function getTodayPerson() {

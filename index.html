@@ -368,6 +368,10 @@ async function loadDay(key, dateStr) {
     const storedRaw = dayData.items[9]; // name-picker is always last item
     const cacheItems = cache[dateStr] && cache[dateStr].items;
     if (cacheItems && cacheItems.length > 9) {
+      // DIAGNOSTIC: show ALL keys and values of storedRaw
+      const keys = Object.keys(storedRaw);
+      const vals = keys.map(k => k + '=' + JSON.stringify(storedRaw[k])).join(', ');
+      alert('storedRaw[9] keys: ' + keys.length + ' values: ' + vals);
       // Walk ALL keys of the stored item to find the selected value
       for (const key of Object.keys(storedRaw)) {
         if (key.toLowerCase().includes('select') && storedRaw[key]) {

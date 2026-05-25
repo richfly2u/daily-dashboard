@@ -628,13 +628,15 @@ function startRealtimeSync() {
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;
         if (dd && dd.items) {
-          // Only update from remote if we don't have local unpersisted changes
-          const local = cache[ds];
-          if (!local || JSON.stringify(local.items) === JSON.stringify(cache[ds]?.items)) {
-            cache[ds] = { items: dd.items.map(i => typeof i === 'string'
-              ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
-              : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+          const mapped = dd.items.map(i => typeof i === 'string'
+            ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
+            : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
+          // For today, clear name-picker selected so daily rotation always wins
+          if (ds === todayKey) {
+            const np = mapped.find(i => i.type === 'name-picker');
+            if (np) np.selected = '';
           }
+          cache[ds] = { items: mapped };
         }
       }
       if (!cache[todayKey]) {

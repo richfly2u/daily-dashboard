@@ -680,11 +680,9 @@ function getDateDiffDays() {
   return Math.round((now - ref) / 86400000);
 }
 function getCareSuggestions() {
-  if (!nameList.length || careEvery < 1) return [];
+  if (!nameList.length) return [];
+  // Daily rotation: pick one person per day based on date offset from EPOCH
   const diff = getDateDiffDays();
-  const isCareDay = (diff % careEvery) === 0;
-  if (!isCareDay) return [];
-  // Simple daily rotation: pick one person per day based on date offset
   const idx = diff % nameList.length;
   return [nameList[idx]];
 }

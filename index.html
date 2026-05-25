@@ -368,9 +368,9 @@ async function loadDay(key, dateStr) {
       if (!migrated[j].text && migrated[j].type === def.type) migrated[j].text = def.text;
     });
     cache[dateStr] = { items: migrated };
-  // DEBUG: name-picker selected after loadDay
-  const npItem = migrated.find(i => i.type === 'name-picker');
-  if (npItem) console.log('loadDay name-picker selected=' + JSON.stringify(npItem.selected));
+    // Force name-picker selected to empty for today so rotation always wins
+    const npItem = migrated.find(i => i.type === 'name-picker');
+    if (npItem && dateStr === today()) npItem.selected = '';
   } else {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }

@@ -363,7 +363,26 @@ async function loadDay(key, dateStr) {
   } else {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
-  // Force sync: copy stored selected from raw Firestore data (bypass cache mutation)
+  // Force sync: directly set name-picker selected from raw Firestore data
+  if (dayData && dayData.items && Array.isArray(dayData.items) && dayData.items.length > 9) {
+    const storedRaw = dayData.items[9]; // name-picker is always last item
+    const cacheItems = cache[dateStr] && cache[dateStr].items;
+    if (cacheItems && cacheItems.length > 9) {
+      // Walk ALL keys of the stored item to find the selected value
+      for (const key of Object.keys(storedRaw)) {
+        if (key.toLowerCase().includes('select') && storedRaw[key]) {
+          cacheItems[9].selected = storedRaw[key];
+          break;
+        }
+      }
+      // If still empty, try JSON.stringify to find hidden fields
+      if (!cacheItems[9].selected) {
+        const str = JSON.stringify(storedRaw);
+        const m = str.match(/王嬿翔|陳冠宇|select[^}]{0,20}/);
+        if (m) console.log('Found in JSON:', m[0]);
+      }
+    }
+  }
   // DIAGNOSTIC: dump cache items after loadDay to see what happened
   const diagItems = cache[dateStr] && cache[dateStr].items;
   if (diagItems) {

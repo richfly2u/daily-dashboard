@@ -451,9 +451,10 @@ function render() {
     if (item.type === 'name-picker') {
       if (!item.selected) {
         item.selected = getTodayPerson();
-        if (item.selected) {
-          item.selected.split(',').filter(Boolean).forEach(s => { careDates[s] = dk(new Date()); });
-        }
+      }
+      // If we got a person, save to careDates for the overview panel
+      if (item.selected) {
+        item.selected.split(',').filter(Boolean).forEach(s => { careDates[s] = dk(new Date()); });
       }
       const names = item.selected ? item.selected.split(',').filter(Boolean) : [];
       if (careCount > 1 || names.length > 1) {

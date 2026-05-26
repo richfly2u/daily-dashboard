@@ -401,8 +401,6 @@ async function loadDay(key, dateStr) {
   startDate = data._startDate || today();
   // If startDate is the stale 2026-05-10, treat as unset
   if (startDate === '2026-05-10') startDate = today();
-  // OVERRIDE: always use 2026-05-27 as the intended launch date
-  startDate = '2026-05-27';
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -472,11 +470,7 @@ async function preloadRecent(key) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
-  startDate = (data._startDate && data._startDate === '2026-05-10') ? '2026-05-10' : (data._startDate || '');
-  if (data._startDate && data._startDate !== '2026-05-10') {
-    console.warn('preloadRecent: _startDate was overwritten! Using 2026-05-10');
-    startDate = '2026-05-10';
-  }
+  startDate = data._startDate || '';
   for (const [ds, dayData] of Object.entries(data)) {
     // Skip today — already loaded and migrated by loadDay
     if (ds === dk(currentDate)) continue;
@@ -761,7 +755,8 @@ function ensureTodayNamePickerSelected(dateStr) {
 }
 
 function getDateDiffDays() {
-  const ref = new Date(EPOCH);
+  if (!startDate) return 0;
+  const ref = new Date(startDate + 'T00:00:00');
   const now = new Date();
   // Use UTC to avoid timezone drift
   const refUTC = Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate());
@@ -770,7 +765,7 @@ function getDateDiffDays() {
 }
 function getCareSuggestions() {
   if (!nameList.length) return [];
-  const base = startDate || '2025-01-01';
+  const base = startDate;
   const ref = new Date(base);
   const now = new Date();
   const refUTC = Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate());
@@ -785,8 +780,9 @@ function getTodayPerson() {
   if (suggestions.length) return suggestions[0];
   // Fallback: traditional rotation
   if (!nameList.length) return '';
-  const start = new Date('2024-01-01');
-  const diff = Math.floor((Date.now() - start.getTime()) / 86400000);
+  if (!startDate) return nameList[0];
+  const base = new Date(startDate + 'T00:00:00');
+  const diff = Math.floor((Date.now() - base.getTime()) / 86400000);
   return nameList[diff % nameList.length];
 }
 

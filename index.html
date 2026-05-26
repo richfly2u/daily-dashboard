@@ -41,7 +41,8 @@
   .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
   .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
   .date-nav { position: relative; }
-  .cal-popup { position:absolute; top:100%; left:50%; transform:translateX(-50%); z-index:100; margin-top:8px; background:rgba(30,30,50,0.95); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(168,85,247,0.3); border-radius:16px; padding:16px; width:280px; box-shadow:0 8px 32px rgba(0,0,0,0.5); display:none; }
+  .date-nav .date-col { position:relative; }
+  .cal-popup { position:absolute; top:100%; left:0; z-index:100; margin-top:8px; background:rgba(30,30,50,0.95); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(168,85,247,0.3); border-radius:16px; padding:16px; width:280px; box-shadow:0 8px 32px rgba(0,0,0,0.5); display:none; }
   .cal-popup.open { display:block; }
   .cal-popup .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .cal-popup .cal-header .cal-moy { font-size:15px; font-weight:600; color:#e8e8ed; }
@@ -231,10 +232,9 @@
 
   <div class="date-nav">
     <button id="prevDay">‹</button>
-    <div><span class="date-label" id="dateLabel" style="cursor:pointer"></span><span class="weekday" id="weekdayLabel"></span></div>
+    <div class="date-col"><span class="date-label" id="dateLabel" style="cursor:pointer"></span><span class="weekday" id="weekdayLabel"></span><div class="cal-popup" id="calPopup"><div class="cal-header"><button id="calPrevM">‹</button><span class="cal-moy" id="calMoy"></span><button id="calNextM">›</button></div><div class="cal-grid" id="calGrid"></div></div></div>
     <button id="nextDay">›</button>
     <button id="todayBtn">今天</button>
-    <div class="cal-popup" id="calPopup"><div class="cal-header"><button id="calPrevM">‹</button><span class="cal-moy" id="calMoy"></span><button id="calNextM">›</button></div><div class="cal-grid" id="calGrid"></div></div>
   </div>
 
   <div class="stats">

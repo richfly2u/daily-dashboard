@@ -524,7 +524,7 @@ function render() {
     const text = item.text, done = item.done, notes = item.notes || '';
     const locked = item.locked !== false;
     const div = document.createElement('div');
-    const ro = !isToday;
+    const ro = !isToday || dk(currentDate) < today();
     const glColors = ['gl','gl1','gl2','gl3','gl4','gl5','gl6'];
     div.className = 'check-item ' + glColors[i % glColors.length] + (done ? ' done' : '') + (notes ? ' has-note' : '') + (ro ? ' readonly' : '');
     let extraHTML = '';

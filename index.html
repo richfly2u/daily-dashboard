@@ -694,8 +694,6 @@ function getDateDiffDays() {
 }
 function getCareSuggestions() {
   if (!nameList.length) return [];
-  // Daily rotation: pick one person per day based on date offset
-  // Use Firestore _startDate if available, otherwise fallback to EPOCH
   const base = startDate || '2025-01-01';
   const ref = new Date(base);
   const now = new Date();
@@ -703,6 +701,7 @@ function getCareSuggestions() {
   const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = Math.floor((nowUTC - refUTC) / 86400000);
   const idx = diff % nameList.length;
+  alert('DEBUG: startDate="' + startDate + '" base="' + base + '" diff=' + diff + ' idx=' + idx + ' person=' + nameList[idx]);
   return [nameList[idx]];
 }
 function getTodayPerson() {

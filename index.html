@@ -242,7 +242,7 @@
   <div class="stats">
     <div class="stat-card c1"><div class="num green" id="doneCount">0</div><div class="label">已完成</div></div>
     <div class="stat-card c2"><div class="num blue" id="totalCount">0</div><div class="label">總項目</div></div>
-    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">自5/27起 DAY</div></div>
+    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">自5/27起 DAY <span style="font-size:10px;color:#888;display:block;margin-top:2px;">🎉6/27滿月</span></div></div>
   </div>
 
   <div class="progress-wrap">
@@ -987,7 +987,9 @@ function renderCalendar() {
     let cls = 'cal-day';
     if (d === td) cls += ' today';
     if (d === cd) cls += ' selected';
-    grid.innerHTML += `<div class="${cls}" data-day="${d}">${d}</div>`;
+    // Mark 6/27 as launch day
+    const isLaunch = calYear===2026 && calMonth===5 && d===27;
+    grid.innerHTML += `<div class="${cls}" data-day="${d}">${isLaunch ? '🎉' : d}</div>`;
   }
 }
 document.getElementById('dateLabel').onclick = () => {

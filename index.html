@@ -56,6 +56,8 @@
   .cal-dialog .cal-grid .cal-day.today { border:1.5px solid #a78bfa; }
   .cal-dialog .cal-grid .cal-day.selected { background:linear-gradient(135deg,#6c5ce7,#a855f7); color:white; font-weight:600; }
   .cal-dialog .cal-grid .cal-day.other { color:#333; }
+  .cal-dialog .cal-grid .cal-day.disabled { color:#333 !important; cursor:default; }
+  .cal-dialog .cal-grid .cal-day.disabled:active { background:none; }
   .cal-dialog .cal-close { display:block; margin:12px auto 0; background:#282838; border:none; border-radius:10px; padding:8px 20px; color:#888; font-size:13px; cursor:pointer; }
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; position: relative; }
@@ -983,13 +985,17 @@ function renderCalendar() {
   const td = today.getFullYear()===calYear && today.getMonth()===calMonth ? today.getDate() : 0;
   const cd = currentDate.getFullYear()===calYear && currentDate.getMonth()===calMonth ? currentDate.getDate() : 0;
   for (let i=0; i<first; i++) grid.innerHTML += '<div class="cal-day other"></div>';
+  const launchTs = new Date(2026,4,27).getTime(); // May 27
   for (let d=1; d<=days; d++) {
     let cls = 'cal-day';
+    const dts = new Date(calYear, calMonth, d).getTime();
+    const beforeLaunch = dts < launchTs;
+    if (beforeLaunch) cls += ' other disabled';
     if (d === td) cls += ' today';
     if (d === cd) cls += ' selected';
     // Mark 5/27 as launch day
     const isLaunch = calYear===2026 && calMonth===4 && d===27;
-    grid.innerHTML += `<div class="${cls}" data-day="${d}">${isLaunch ? '🎉' : d}</div>`;
+    grid.innerHTML += `<div class="${cls}" data-day="${d}"${beforeLaunch?'':' data-selectable="1"'}>${isLaunch ? '🎉' : d}</div>`;
   }
 }
 document.getElementById('dateLabel').onclick = () => {
@@ -1004,6 +1010,7 @@ document.getElementById('calNextM').onclick = () => { calMonth++; if(calMonth>11
 document.getElementById('calGrid').onclick = e => {
   const day = e.target.dataset.day;
   if (!day) return;
+  if (!e.target.dataset.selectable) return;
   document.getElementById('calOverlay').classList.remove('open');
   saveCurrentDay();
   currentDate.setFullYear(calYear, calMonth, parseInt(day));

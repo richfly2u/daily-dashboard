@@ -386,12 +386,13 @@ async function saveCurrentDay() {
   const ref = doc(db, "dashboard", boardKey);
   const update = {};
   update[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
-  update._names = nameList.length ? nameList : DEFAULT_NAMES;
+  update._nameList = nameList;
   update._careEvery = careEvery;
   update._careCount = careCount;
   update._careInterval = careInterval;
   update._careDates = careDates;
-  update._startDate = today();
+  // Preserve _startDate — only set once on initial save
+  if (!update._startDate) update._startDate = startDate || today();
   try {
     await setDoc(ref, update, { merge: true });
     setStatus(true);

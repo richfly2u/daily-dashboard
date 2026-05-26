@@ -489,7 +489,7 @@ function render() {
   if (typeof startDate !== 'undefined' && startDate) {
     const s = new Date(startDate);
     const now = new Date();
-    const days = Math.floor((now - s) / (86400000)) + 1;
+    const days = Math.max(1, Math.floor((now - s) / (86400000)) + 1);
     document.getElementById('daysCount').textContent = days;
   } else {
     document.getElementById('daysCount').textContent = '—';
@@ -745,7 +745,7 @@ function getCareSuggestions() {
   const refUTC = Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate());
   const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = Math.floor((nowUTC - refUTC) / 86400000);
-  const idx = diff % nameList.length;
+  const idx = ((diff % nameList.length) + nameList.length) % nameList.length;
   console.log('rotation: startDate=' + startDate + ' base=' + base + ' diff=' + diff + ' idx=' + idx + ' person=' + nameList[idx]);
   return [nameList[idx]];
 }

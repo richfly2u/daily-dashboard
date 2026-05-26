@@ -85,7 +85,7 @@
   .check-item .item-text { flex: 1; padding: 12px 0; font-size: 14px; }
   .check-item .item-text strong { cursor: pointer; }
   .check-item .lock-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0.5; flex-shrink: 0; }
-  .check-item .care-heart { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; flex-shrink: 0; margin-left: 4px; }
+  .check-item .care-heart-display { font-size: 18px; margin-left: 4px; }
   .check-item:hover .lock-btn { opacity: 1; }
   .check-item .edit-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; flex-shrink: 0; margin-right: 2px; }
   .check-item .item-text-input { flex:1; background:#0f0f13; border:1px solid #6c5ce7; border-radius:6px; padding:6px 10px; color:#e8e8ed; font-size:14px; font-family:inherit; outline:none; min-width:0; }
@@ -507,9 +507,8 @@ function render() {
         // Check if care has been marked for today
         const careKey = todayName + '_' + today();
         const cared = localStorage.getItem('cared_' + careKey) === 'true';
-        extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong></span>
-          <button class="care-heart" data-person="${esc(todayName)}">${cared ? '❤️' : '🤍'}</button>
-          <span class="care-status" style="font-size:11px;color:${cared ? '#f472b6' : '#555'};margin-left:4px;">${cared ? '已關心' : ''}</span>`;
+        extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong> <span class="care-heart-display">${cared ? '❤️' : '🤍'}</span></span>` +
+          `<span class="care-status" style="font-size:11px;color:${cared ? '#f472b6' : '#555'};margin-left:4px;">${cared ? '已關心' : ''}</span>`;
       }
       var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
@@ -525,29 +524,21 @@ function render() {
       if (item.type !== 'name-picker') {
         div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
       } else {
-        // Click on name-picker item toggles care heart
+        // Click on name-picker item text toggles care state
         div.querySelector('.item-text').onclick = (e) => {
           if (editMode) return;
           e.stopPropagation();
-          const heartBtn = div.querySelector('.care-heart');
-          if (heartBtn) heartBtn.click();
+          const d = cache[dk(currentDate)];
+          if (!d || !d.items[i]) return;
+          const item = d.items[i];
+          const person = item.selected?.split(',')[0] || '';
+          if (!person) return;
+          const careKey = 'cared_' + person + '_' + today();
+          const nowCared = localStorage.getItem(careKey) !== 'true';
+          localStorage.setItem(careKey, nowCared ? 'true' : 'false');
+          render();
         };
       }
-      // Care heart button
-      const heartEl = div.querySelector('.care-heart');
-      if (heartEl) heartEl.onclick = function(e) {
-        e.stopPropagation();
-        const person = this.dataset.person;
-        const careKey = 'cared_' + person + '_' + today();
-        const nowCared = localStorage.getItem(careKey) !== 'true';
-        localStorage.setItem(careKey, nowCared ? 'true' : 'false');
-        this.textContent = nowCared ? '❤️' : '🤍';
-        const statusEl = this.nextElementSibling;
-        if (statusEl) {
-          statusEl.textContent = nowCared ? '已關心' : '';
-          statusEl.style.color = nowCared ? '#f472b6' : '#555';
-        }
-      };
       const selEl = div.querySelector('.name-select');
       if (selEl) selEl.onchange = function() {
         item.selected = this.value;

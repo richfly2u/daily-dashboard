@@ -913,13 +913,11 @@ function showNameDialog() {
     careInterval = parseInt(document.getElementById('careIntervalInput').value) || 7;
     const sdInput = document.getElementById('startDateInput').value;
     const newStartDate = sdInput || today();
-    if (newStartDate !== startDate) {
-      startDate = newStartDate;
-      // Reload current day to apply new rotation
-      if (boardKey) loadDay(boardKey, dk(currentDate));
-    }
+    startDate = newStartDate;
     const ref = doc(db, "dashboard", boardKey);
     try { await setDoc(ref, { _names: nameList.length ? nameList : DEFAULT_NAMES, _careEvery: careEvery, _careCount: careCount, _careInterval: careInterval, _careDates: careDates, _startDate: startDate }, { merge: true }); setStatus(true); } catch(e) { setStatus(false); }
+    // Re-render to apply new rotation and label
+    render();
     dialog.style.display = 'none';
   };
   populateCareInputs();

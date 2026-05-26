@@ -502,7 +502,7 @@ function render() {
     if (item.type === 'name-picker') {
       const names = item.selected ? item.selected.split(',').filter(Boolean) : [];
       const todayName = names[0] || '';
-      const isCared = todayName && localStorage.getItem('cared_' + todayName + '_' + today()) === 'true';
+      const isCared = done;
       if (isCared) div.className += ' cared';
       if (!ro) div.className += ' name-picker-item';
       if (careCount > 1 || names.length > 1) {
@@ -513,8 +513,8 @@ function render() {
           `</div>`;
       } else {
         const todayName = names[0] || '?';
-        // Check if care has been marked for today
-        const cared = localStorage.getItem('cared_' + todayName + '_' + today()) === 'true';
+        // ❤️ when done, 🤍 when not
+        const cared = done;
         extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong> <span class="care-heart-display">${cared ? '❤️' : '🤍'}</span></span>` +
           `<span class="care-status" style="font-size:11px;color:${cared ? '#f472b6' : '#555'};margin-left:4px;">${cared ? '已關心' : ''}</span>`;
       }
@@ -537,14 +537,6 @@ function render() {
           if (editMode) return;
           e.stopPropagation();
           toggle(i);
-          // Sync care state with done state
-          const d2 = cache[dk(currentDate)];
-          if (!d2 || !d2.items[i]) return;
-          const item2 = d2.items[i];
-          const person = item2.selected?.split(',')[0] || '';
-          if (!person) return;
-          const careKey = 'cared_' + person + '_' + today();
-          localStorage.setItem(careKey, item2.done ? 'true' : 'false');
           render();
         };
       }

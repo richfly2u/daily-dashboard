@@ -355,6 +355,8 @@ async function loadDay(key, dateStr) {
   if (data._startDate && data._startDate !== '2026-05-10') {
     console.warn('_startDate was overwritten! Restoring to 2026-05-10');
     startDate = '2026-05-10';
+    // Also fix it in Firestore immediately
+    saveDoc({ _startDate: '2026-05-10' }).catch(e => console.warn('fix _startDate failed', e));
   }
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
@@ -714,7 +716,7 @@ function getCareSuggestions() {
   const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = Math.floor((nowUTC - refUTC) / 86400000);
   const idx = diff % nameList.length;
-  alert('DEBUG: startDate="' + startDate + '" base="' + base + '" diff=' + diff + ' idx=' + idx + ' person=' + nameList[idx]);
+  console.log('rotation: startDate=' + startDate + ' base=' + base + ' diff=' + diff + ' idx=' + idx + ' person=' + nameList[idx]);
   return [nameList[idx]];
 }
 function getTodayPerson() {

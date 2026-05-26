@@ -79,6 +79,9 @@
   .check-item.gl6 { border-color: rgba(52,211,153,0.4); box-shadow: 0 0 16px rgba(52,211,153,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.done { opacity: 0.7; }
   .check-item.done .item-text { text-decoration: line-through; color: #666; }
+  .check-item.done.name-picker-item { opacity: 1; }
+  .check-item.done.name-picker-item .item-text { text-decoration: none; color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.5); }
+  .check-item.done.name-picker-item .item-text strong { color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.5); }
   .check-item.readonly { opacity: 0.5; pointer-events: none; }
   .check-item .cb { width: 22px; height: 22px; border: 2px solid #444; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
   .check-item.done .cb { border-color: #34d399; background: #34d399; color: #0f0f13; }
@@ -501,6 +504,7 @@ function render() {
       const todayName = names[0] || '';
       const isCared = todayName && localStorage.getItem('cared_' + todayName + '_' + today()) === 'true';
       if (isCared) div.className += ' cared';
+      if (!ro) div.className += ' name-picker-item';
       if (careCount > 1 || names.length > 1) {
         extraHTML = `<span class="item-text">👤 ${esc(text)}</span>` +
           `<div style="display:flex;flex-wrap:wrap;gap:4px;flex:1;align-items:center;">` +
@@ -528,19 +532,19 @@ function render() {
       if (item.type !== 'name-picker') {
         div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
       } else {
-        // Click on name-picker item toggles care state + glowing border (no strikethrough)
+        // Click on name-picker item: toggles done (checkmark) + care heart together
         div.querySelector('.item-text').onclick = (e) => {
           if (editMode) return;
           e.stopPropagation();
+          toggle(i);
+          // Sync care state with done state
           const d2 = cache[dk(currentDate)];
           if (!d2 || !d2.items[i]) return;
           const item2 = d2.items[i];
           const person = item2.selected?.split(',')[0] || '';
           if (!person) return;
-          const todayStr = today();
-          const careKey = 'cared_' + person + '_' + todayStr;
-          const nowCared = localStorage.getItem(careKey) !== 'true';
-          localStorage.setItem(careKey, nowCared ? 'true' : 'false');
+          const careKey = 'cared_' + person + '_' + today();
+          localStorage.setItem(careKey, item2.done ? 'true' : 'false');
           render();
         };
       }

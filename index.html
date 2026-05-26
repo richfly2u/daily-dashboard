@@ -505,8 +505,7 @@ function render() {
       } else {
         const todayName = names[0] || '?';
         // Check if care has been marked for today
-        const careKey = todayName + '_' + today();
-        const cared = localStorage.getItem('cared_' + careKey) === 'true';
+        const cared = localStorage.getItem('cared_' + todayName + '_' + today()) === 'true';
         extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong> <span class="care-heart-display">${cared ? '❤️' : '🤍'}</span></span>` +
           `<span class="care-status" style="font-size:11px;color:${cared ? '#f472b6' : '#555'};margin-left:4px;">${cared ? '已關心' : ''}</span>`;
       }

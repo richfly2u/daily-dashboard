@@ -401,6 +401,8 @@ async function loadDay(key, dateStr) {
   startDate = data._startDate || today();
   // If startDate is the stale 2026-05-10, treat as unset
   if (startDate === '2026-05-10') startDate = today();
+  // OVERRIDE: always use 2026-05-27 as the intended launch date
+  startDate = '2026-05-27';
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'

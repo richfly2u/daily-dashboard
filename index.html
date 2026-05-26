@@ -225,7 +225,7 @@
   <div class="stats">
     <div class="stat-card c1"><div class="num green" id="doneCount">0</div><div class="label">已完成</div></div>
     <div class="stat-card c2"><div class="num blue" id="totalCount">0</div><div class="label">總項目</div></div>
-    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">運作天數</div></div>
+    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">自6/1起 DAY</div></div>
   </div>
 
   <div class="progress-wrap">
@@ -342,12 +342,12 @@ async function saveDoc(extra) {
     data._careDates = careDates;
   // Set _startDate on first save if not exists
   if (!data._startDate) {
-    data._startDate = '2026-05-10';
-    startDate = '2026-05-10'; // sync global variable
-  } else if (data._startDate !== '2026-05-10') {
+    data._startDate = '2026-06-01';
+    startDate = '2026-06-01'; // sync global variable
+  } else if (data._startDate !== '2026-06-01') {
     // Safety: if _startDate was overwritten, restore it
-    data._startDate = '2026-05-10';
-    startDate = '2026-05-10';
+    data._startDate = '2026-06-01';
+    startDate = '2026-06-01';
   }
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
@@ -367,11 +367,11 @@ async function loadDay(key, dateStr) {
   careDates = data._careDates || {};
   startDate = data._startDate || '';
   // SAFETY: Force _startDate to correct value if it was accidentally overwritten
-  if (data._startDate && data._startDate !== '2026-05-10') {
-    console.warn('_startDate was overwritten! Restoring to 2026-05-10');
-    startDate = '2026-05-10';
+  if (data._startDate && data._startDate !== '2026-06-01') {
+    console.warn('_startDate was overwritten! Restoring to 2026-06-01');
+    startDate = '2026-06-01';
     // Also fix it in Firestore immediately
-    saveDoc({ _startDate: '2026-05-10' }).catch(e => console.warn('fix _startDate failed', e));
+    saveDoc({ _startDate: '2026-06-01' }).catch(e => console.warn('fix _startDate failed', e));
   }
   const dayData = data[dateStr];
   if (dayData && dayData.items) {

@@ -375,6 +375,10 @@ async function saveDoc(extra) {
   if (!data._startDate) {
     data._startDate = today();
     startDate = data._startDate;
+  } else if (data._startDate === '2026-05-10') {
+    // Stale value from earlier bug — set to today
+    data._startDate = today();
+    startDate = data._startDate;
   } else if (startDate && startDate !== data._startDate) {
     data._startDate = startDate;
   }
@@ -395,6 +399,8 @@ async function loadDay(key, dateStr) {
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
   startDate = data._startDate || today();
+  // If startDate is the stale 2026-05-10, treat as unset
+  if (startDate === '2026-05-10') startDate = today();
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'

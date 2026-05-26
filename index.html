@@ -502,7 +502,12 @@ function render() {
           `</div>`;
       } else {
         const todayName = names[0] || '?';
-        extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong></span>`;
+        // Check if care has been marked for today
+        const careKey = todayName + '_' + today();
+        const cared = localStorage.getItem('cared_' + careKey) === 'true';
+        extraHTML = `<span class="item-text">👤 ${esc(text)} <strong>${esc(todayName)}</strong></span>
+          <button class="care-heart" data-person="${esc(todayName)}">${cared ? '❤️' : '🤍'}</button>
+          <span class="care-status" style="font-size:11px;color:${cared ? '#f472b6' : '#555'};margin-left:4px;">${cared ? '已關心' : ''}</span>`;
       }
       var nhExtra = '<div class="note-history" id="noteHistory' + i + '"></div>';
     } else {
@@ -518,6 +523,21 @@ function render() {
       if (item.type !== 'name-picker') {
         div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
       }
+      // Care heart button
+      const heartEl = div.querySelector('.care-heart');
+      if (heartEl) heartEl.onclick = function(e) {
+        e.stopPropagation();
+        const person = this.dataset.person;
+        const careKey = 'cared_' + person + '_' + today();
+        const nowCared = localStorage.getItem(careKey) !== 'true';
+        localStorage.setItem(careKey, nowCared ? 'true' : 'false');
+        this.textContent = nowCared ? '❤️' : '🤍';
+        const statusEl = this.nextElementSibling;
+        if (statusEl) {
+          statusEl.textContent = nowCared ? '已關心' : '';
+          statusEl.style.color = nowCared ? '#f472b6' : '#555';
+        }
+      };
       const selEl = div.querySelector('.name-select');
       if (selEl) selEl.onchange = function() {
         item.selected = this.value;

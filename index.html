@@ -394,7 +394,7 @@ async function loadDay(key, dateStr) {
     cache[dateStr] = { items: migrated };
     // Force name-picker selected to empty for today so rotation always wins
     const npItem = migrated.find(i => i.type === 'name-picker');
-    if (npItem && dateStr === today()) npItem.selected = '';
+    if (npItem && dateStr === today()) { npItem.selected = ''; npItem.done = false; }
   } else {
     cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }

@@ -524,20 +524,20 @@ function render() {
       if (item.type !== 'name-picker') {
         div.querySelector('.item-text').onclick = (e) => { if (editMode) return; toggle(i); };
       } else {
-        // Click on name-picker item text toggles care state + checkbox
+        // Click on name-picker item toggles done state AND care heart together
         div.querySelector('.item-text').onclick = (e) => {
           if (editMode) return;
           e.stopPropagation();
           toggle(i); // toggle done/undone
-          // also toggle care heart
+          // After toggle, sync care state to match done state
           const d2 = cache[dk(currentDate)];
           if (!d2 || !d2.items[i]) return;
           const item2 = d2.items[i];
           const person = item2.selected?.split(',')[0] || '';
           if (!person) return;
           const careKey = 'cared_' + person + '_' + today();
-          const nowCared = localStorage.getItem(careKey) !== 'true';
-          localStorage.setItem(careKey, nowCared ? 'true' : 'false');
+          // done=true → cared, done=false → not cared
+          localStorage.setItem(careKey, item2.done ? 'true' : 'false');
           render();
         };
       }

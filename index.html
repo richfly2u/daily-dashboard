@@ -375,6 +375,8 @@ async function saveDoc(extra) {
   if (!data._startDate) {
     data._startDate = today();
     startDate = data._startDate;
+  } else if (startDate && startDate !== data._startDate) {
+    data._startDate = startDate;
   }
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);

@@ -325,11 +325,15 @@ async function saveDoc(extra) {
     data._careCount = careCount;
     data._careInterval = careInterval;
     data._careDates = careDates;
-    // Set _startDate on first save if not exists
-    if (!data._startDate) {
-      data._startDate = today();
-      startDate = data._startDate; // sync global variable
-    }
+  // Set _startDate on first save if not exists
+  if (!data._startDate) {
+    data._startDate = '2026-05-10';
+    startDate = '2026-05-10'; // sync global variable
+  } else if (data._startDate !== '2026-05-10') {
+    // Safety: if _startDate was overwritten, restore it
+    data._startDate = '2026-05-10';
+    startDate = '2026-05-10';
+  }
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
     setStatus(true);
@@ -347,6 +351,11 @@ async function loadDay(key, dateStr) {
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
   startDate = data._startDate || '';
+  // SAFETY: Force _startDate to correct value if it was accidentally overwritten
+  if (data._startDate && data._startDate !== '2026-05-10') {
+    console.warn('_startDate was overwritten! Restoring to 2026-05-10');
+    startDate = '2026-05-10';
+  }
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -416,8 +425,12 @@ async function preloadRecent(key) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
+  startDate = (data._startDate && data._startDate === '2026-05-10') ? '2026-05-10' : (data._startDate || '');
+  if (data._startDate && data._startDate !== '2026-05-10') {
+    console.warn('preloadRecent: _startDate was overwritten! Using 2026-05-10');
+    startDate = '2026-05-10';
+  }
   for (const [ds, dayData] of Object.entries(data)) {
-    if (ds === '_names' || ds === '_careEvery' || ds === '_careCount' || ds === '_careInterval' || ds === '_careDates') continue;
     // Skip today — already loaded and migrated by loadDay
     if (ds === dk(currentDate)) continue;
     if (dayData && dayData.items) {

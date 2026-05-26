@@ -40,6 +40,20 @@
   .date-nav .date-label .weekday { color: #888; font-weight: 400; font-size: 13px; margin-left: 6px; }
   .date-nav button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
   .date-nav .today-btn { font-size: 12px; color: #6c5ce7; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 8px; }
+  .date-nav { position: relative; }
+  .cal-popup { position:absolute; top:100%; left:50%; transform:translateX(-50%); z-index:100; margin-top:8px; background:rgba(30,30,50,0.95); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(168,85,247,0.3); border-radius:16px; padding:16px; width:280px; box-shadow:0 8px 32px rgba(0,0,0,0.5); display:none; }
+  .cal-popup.open { display:block; }
+  .cal-popup .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-popup .cal-header .cal-moy { font-size:15px; font-weight:600; color:#e8e8ed; }
+  .cal-popup .cal-header button { background:none; border:none; color:#a78bfa; font-size:18px; cursor:pointer; padding:2px 8px; border-radius:6px; }
+  .cal-popup .cal-header button:hover { background:rgba(168,85,247,0.1); }
+  .cal-popup .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+  .cal-popup .cal-grid .cal-dow { font-size:11px; color:#666; padding:4px 0; font-weight:600; }
+  .cal-popup .cal-grid .cal-day { padding:6px 0; font-size:13px; border-radius:8px; cursor:pointer; color:#ccc; }
+  .cal-popup .cal-grid .cal-day:hover { background:rgba(168,85,247,0.15); color:#e8e8ed; }
+  .cal-popup .cal-grid .cal-day.today { border:1px solid #a78bfa; }
+  .cal-popup .cal-grid .cal-day.selected { background:linear-gradient(135deg,#6c5ce7,#a855f7); color:white; font-weight:600; }
+  .cal-popup .cal-grid .cal-day.other { color:#444; }
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; position: relative; }
   .stats::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; height: 60px; background: radial-gradient(ellipse at center, rgba(108,92,231,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
@@ -217,9 +231,10 @@
 
   <div class="date-nav">
     <button id="prevDay">‹</button>
-    <div><span class="date-label" id="dateLabel"></span><span class="weekday" id="weekdayLabel"></span></div>
+    <div><span class="date-label" id="dateLabel" style="cursor:pointer"></span><span class="weekday" id="weekdayLabel"></span></div>
     <button id="nextDay">›</button>
-    <div class="today-btn" id="todayBtn">今天</div>
+    <button id="todayBtn">今天</button>
+    <div class="cal-popup" id="calPopup"><div class="cal-header"><button id="calPrevM">‹</button><span class="cal-moy" id="calMoy"></span><button id="calNextM">›</button></div><div class="cal-grid" id="calGrid"></div></div>
   </div>
 
   <div class="stats">
@@ -940,6 +955,49 @@ function renderNameList() {
     };
   });
 }
+
+// === Calendar popup ===
+let calMonth, calYear;
+function renderCalendar() {
+  if (calMonth === undefined) { calMonth = currentDate.getMonth(); calYear = currentDate.getFullYear(); }
+  document.getElementById('calMoy').textContent = calYear + '/' + String(calMonth+1).padStart(2,'0');
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '<div class="cal-dow">日</div><div class="cal-dow">一</div><div class="cal-dow">二</div><div class="cal-dow">三</div><div class="cal-dow">四</div><div class="cal-dow">五</div><div class="cal-dow">六</div>';
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  const td = today.getFullYear()===calYear && today.getMonth()===calMonth ? today.getDate() : 0;
+  const cd = currentDate.getFullYear()===calYear && currentDate.getMonth()===calMonth ? currentDate.getDate() : 0;
+  for (let i=0; i<first; i++) grid.innerHTML += '<div class="cal-day other"></div>';
+  for (let d=1; d<=days; d++) {
+    let cls = 'cal-day';
+    if (d === td) cls += ' today';
+    if (d === cd) cls += ' selected';
+    grid.innerHTML += `<div class="${cls}" data-day="${d}">${d}</div>`;
+  }
+}
+document.getElementById('dateLabel').onclick = () => {
+  calMonth = currentDate.getMonth(); calYear = currentDate.getFullYear();
+  renderCalendar();
+  document.getElementById('calPopup').classList.toggle('open');
+};
+document.getElementById('calPrevM').onclick = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
+document.getElementById('calNextM').onclick = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
+document.getElementById('calGrid').onclick = e => {
+  const day = e.target.dataset.day;
+  if (!day) return;
+  document.getElementById('calPopup').classList.remove('open');
+  saveCurrentDay();
+  currentDate.setFullYear(calYear, calMonth, parseInt(day));
+  render();
+};
+// Click outside to close
+document.addEventListener('click', e => {
+  const popup = document.getElementById('calPopup');
+  if (popup.classList.contains('open') && !e.target.closest('.date-nav')) {
+    popup.classList.remove('open');
+  }
+});
 
 // === Events ===
 document.getElementById('loginBtn').onclick = () => doLogin();

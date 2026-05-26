@@ -18,11 +18,16 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Only cache GET requests for static assets
+  if (e.request.method !== 'GET') {
+    e.respondWith(fetch(e.request));
+    return;
+  }
   // Network-first: try network, fallback to cache only if offline
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        // Clone response for cache
+        // Clone response for cache (only static resources)
         const resClone = res.clone();
         caches.open(CACHE).then(cache => cache.put(e.request, resClone));
         return res;

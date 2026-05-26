@@ -27,7 +27,12 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
     }
     match /dashboard/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if true
+        // Protect _startDate from being overwritten once set
+        && (!request.resource.data.keys().hasAny(['_startDate'])
+            || !resource.data.keys().hasAny(['_startDate'])
+            || request.resource.data._startDate == resource.data._startDate);
     }
   }
 }

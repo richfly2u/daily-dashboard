@@ -77,8 +77,9 @@
   .check-item.gl4 { border-color: rgba(168,85,247,0.4); box-shadow: 0 0 16px rgba(168,85,247,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl5 { border-color: rgba(251,146,60,0.4); box-shadow: 0 0 16px rgba(251,146,60,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl6 { border-color: rgba(52,211,153,0.4); box-shadow: 0 0 16px rgba(52,211,153,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
-  .check-item.done { opacity: 0.7; }
-  .check-item.done .item-text { text-decoration: line-through; color: #666; }
+  .check-item.done:not(.name-picker-item) { border-color: rgba(251,191,36,0.7) !important; box-shadow: 0 0 15px rgba(251,191,36,0.2), 0 0 30px rgba(251,191,36,0.08), inset 0 1px 0 rgba(255,255,255,0.12) !important; }
+  .check-item.done .item-text { color: #fbbf24 !important; }
+  .check-item.done .care-status { color: #f472b6 !important; }
   .check-item.done.name-picker-item { opacity: 1; }
   .check-item.done.name-picker-item .item-text { text-decoration: none; color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.5); }
   .check-item.done.name-picker-item .item-text strong { color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.5); }

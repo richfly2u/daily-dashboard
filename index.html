@@ -371,17 +371,17 @@ async function saveDoc(extra) {
     data._careCount = careCount;
     data._careInterval = careInterval;
     data._careDates = careDates;
-  // Ensure _startDate is set
-  if (!data._startDate) {
-    data._startDate = today();
-    startDate = data._startDate;
-  } else if (data._startDate === '2026-05-10') {
-    // Stale value from earlier bug — set to today
-    data._startDate = today();
-    startDate = data._startDate;
-  } else if (startDate && startDate !== data._startDate) {
-    data._startDate = startDate;
-  }
+    // Ensure _startDate is set — respect user-set value, only fallback to today if truly missing
+    if (!data._startDate) {
+      data._startDate = today();
+      startDate = data._startDate;
+    } else if (data._startDate === '2026-05-10') {
+      // Stale value from earlier bug — set to today
+      data._startDate = today();
+      startDate = data._startDate;
+    } else if (startDate && startDate !== data._startDate) {
+      data._startDate = startDate;
+    }
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
     setStatus(true);
@@ -1080,7 +1080,24 @@ if (boardKey) {
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // Auto-update: detect new SW and refresh
+  navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          // New version available — wait 3s then refresh
+          setTimeout(() => { window.location.reload(); }, 3000);
+        }
+      });
+    });
+    // Check for updates every 30 minutes
+    setInterval(() => { reg.update(); }, 30 * 60 * 1000);
+    // Force refresh on next activation
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  }).catch(() => {});
 }
 </script>
 </body>

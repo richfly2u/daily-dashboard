@@ -326,7 +326,10 @@ async function saveDoc(extra) {
     data._careInterval = careInterval;
     data._careDates = careDates;
     // Set _startDate on first save if not exists
-    if (!data._startDate) data._startDate = today();
+    if (!data._startDate) {
+      data._startDate = today();
+      startDate = data._startDate; // sync global variable
+    }
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
     setStatus(true);
@@ -393,8 +396,8 @@ async function saveCurrentDay() {
   update._careCount = careCount;
   update._careInterval = careInterval;
   update._careDates = careDates;
-  // Preserve _startDate — only set once on initial save
-  if (!update._startDate) update._startDate = startDate || today();
+  // _startDate is set ONCE by saveDoc() in loadDay on first load — NOT here.
+  // Omitting _startDate from saveCurrentDay prevents the 'always-overwrite' bug.
   try {
     await setDoc(ref, update, { merge: true });
     setStatus(true);

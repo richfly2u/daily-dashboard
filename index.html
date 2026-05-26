@@ -373,7 +373,7 @@ async function saveDoc(extra) {
     data._careDates = careDates;
   // Ensure _startDate is set
   if (!data._startDate) {
-    data._startDate = '2026-05-27';
+    data._startDate = today();
     startDate = data._startDate;
   } else if (startDate && startDate !== data._startDate) {
     data._startDate = startDate;
@@ -394,7 +394,7 @@ async function loadDay(key, dateStr) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
-  startDate = data._startDate || '2026-05-27';
+  startDate = data._startDate || today();
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'

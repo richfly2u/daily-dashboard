@@ -1080,20 +1080,7 @@ if (boardKey) {
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  // Auto-update: detect new SW and refresh
-  navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(reg => {
-    reg.addEventListener('updatefound', () => {
-      const newSW = reg.installing;
-      newSW.addEventListener('statechange', () => {
-        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-          // New version available — wait 3s then refresh
-          setTimeout(() => { window.location.reload(); }, 3000);
-        }
-      });
-    });
-    // Check for updates every 30 minutes
-    setInterval(() => { reg.update(); }, 30 * 60 * 1000);
-  }).catch(() => {});
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 </script>
 </body>

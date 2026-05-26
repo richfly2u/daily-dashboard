@@ -1093,9 +1093,14 @@ if ('serviceWorker' in navigator) {
     });
     // Check for updates every 30 minutes
     setInterval(() => { reg.update(); }, 30 * 60 * 1000);
-    // Force refresh on next activation
+    // Force refresh on next activation (but only once per visit)
+    let refreshed = sessionStorage.getItem('sw_refreshed');
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
+      if (!refreshed) {
+        refreshed = '1';
+        sessionStorage.setItem('sw_refreshed', '1');
+        window.location.reload();
+      }
     });
   }).catch(() => {});
 }

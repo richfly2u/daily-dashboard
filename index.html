@@ -244,7 +244,7 @@
   <div class="stats">
     <div class="stat-card c1"><div class="num green" id="doneCount">0</div><div class="label">已完成</div></div>
     <div class="stat-card c2"><div class="num blue" id="totalCount">0</div><div class="label">總項目</div></div>
-    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">自5/27起 DAY <span style="font-size:10px;color:#888;display:block;margin-top:2px;">🎉5/27起跑</span></div></div>
+    <div class="stat-card c3"><div class="num amber" id="daysCount">0</div><div class="label">DAY <span id="startDateLabel"></span></div></div>
   </div>
 
   <div class="progress-wrap">
@@ -371,14 +371,10 @@ async function saveDoc(extra) {
     data._careCount = careCount;
     data._careInterval = careInterval;
     data._careDates = careDates;
-  // Set _startDate on first save if not exists
+  // Ensure _startDate is set
   if (!data._startDate) {
-    data._startDate = '2026-05-27';
-    startDate = '2026-05-27'; // sync global variable
-  } else if (data._startDate !== '2026-05-27') {
-    // Safety: if _startDate was overwritten, restore it
-    data._startDate = '2026-05-27';
-    startDate = '2026-05-27';
+    data._startDate = today();
+    startDate = data._startDate;
   }
     if (extra) Object.assign(data, extra);
     await setDoc(ref, data);
@@ -396,14 +392,7 @@ async function loadDay(key, dateStr) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
-  startDate = data._startDate || '';
-  // SAFETY: Force _startDate to correct value if it was accidentally overwritten
-  if (data._startDate && data._startDate !== '2026-05-27') {
-    console.warn('_startDate was overwritten! Restoring to 2026-05-27');
-    startDate = '2026-05-27';
-    // Also fix it in Firestore immediately
-    saveDoc({ _startDate: '2026-05-27' }).catch(e => console.warn('fix _startDate failed', e));
-  }
+  startDate = data._startDate || today();
   const dayData = data[dateStr];
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -522,6 +511,7 @@ function render() {
     const now = new Date();
     const days = Math.max(1, Math.floor((now - s) / (86400000)) + 1);
     document.getElementById('daysCount').textContent = days;
+    document.getElementById('startDateLabel').textContent = '自 ' + startDate + ' 起';
   } else {
     document.getElementById('daysCount').textContent = '—';
   }
@@ -890,6 +880,8 @@ const dialogHTML = `
         <div style="text-align:center;"><label style="font-size:11px;color:#666;">每次 N 人</label><input type="number" id="careCountInput" min="1" max="20" value="1" class="care-input"></div>
         <div style="text-align:center;"><label style="font-size:11px;color:#666;">間隔 N 天</label><input type="number" id="careIntervalInput" min="0" max="365" value="7" class="care-input"></div>
       </div>
+      <div style="margin-top:12px;font-size:13px;color:#a78bfa;font-weight:600;">🏁 啟用日期</div>
+      <input type="date" id="startDateInput" style="width:100%;background:#0f0f13;border:1px solid #282838;border-radius:6px;padding:6px 8px;color:#e8e8ed;font-size:13px;outline:none;margin-top:4px;">
     </div>
     <div class="btn-row">
       <button id="closeNameDialog" class="close-btn">關閉</button>
@@ -917,8 +909,15 @@ function showNameDialog() {
     careEvery = parseInt(document.getElementById('careEveryInput').value) || 1;
     careCount = parseInt(document.getElementById('careCountInput').value) || 1;
     careInterval = parseInt(document.getElementById('careIntervalInput').value) || 7;
+    const sdInput = document.getElementById('startDateInput').value;
+    const newStartDate = sdInput || today();
+    if (newStartDate !== startDate) {
+      startDate = newStartDate;
+      // Reload current day to apply new rotation
+      if (boardKey) loadDay(boardKey, dk(currentDate));
+    }
     const ref = doc(db, "dashboard", boardKey);
-    try { await setDoc(ref, { _names: nameList.length ? nameList : DEFAULT_NAMES, _careEvery: careEvery, _careCount: careCount, _careInterval: careInterval, _careDates: careDates }, { merge: true }); setStatus(true); } catch(e) { setStatus(false); }
+    try { await setDoc(ref, { _names: nameList.length ? nameList : DEFAULT_NAMES, _careEvery: careEvery, _careCount: careCount, _careInterval: careInterval, _careDates: careDates, _startDate: startDate }, { merge: true }); setStatus(true); } catch(e) { setStatus(false); }
     dialog.style.display = 'none';
   };
   populateCareInputs();
@@ -931,6 +930,8 @@ function populateCareInputs() {
   if (c) c.value = careCount;
   const i = document.getElementById('careIntervalInput');
   if (i) i.value = careInterval;
+  const sd = document.getElementById('startDateInput');
+  if (sd) sd.value = startDate || '';
 }
 
 function renderNameList() {
@@ -985,7 +986,7 @@ function renderCalendar() {
   const td = today.getFullYear()===calYear && today.getMonth()===calMonth ? today.getDate() : 0;
   const cd = currentDate.getFullYear()===calYear && currentDate.getMonth()===calMonth ? currentDate.getDate() : 0;
   for (let i=0; i<first; i++) grid.innerHTML += '<div class="cal-day other"></div>';
-  const launchTs = new Date(2026,4,27).getTime(); // May 27
+  const launchTs = new Date(startDate || today()).getTime();
   for (let d=1; d<=days; d++) {
     let cls = 'cal-day';
     const dts = new Date(calYear, calMonth, d).getTime();
@@ -993,8 +994,10 @@ function renderCalendar() {
     if (beforeLaunch) cls += ' other disabled';
     if (d === td) cls += ' today';
     if (d === cd) cls += ' selected';
-    // Mark 5/27 as launch day
-    const isLaunch = calYear===2026 && calMonth===4 && d===27;
+    // Mark launch day
+    const launchDate = startDate || today();
+    const [ly,lm,ld] = launchDate.split('-').map(Number);
+    const isLaunch = calYear===ly && calMonth===(lm-1) && d===ld;
     grid.innerHTML += `<div class="${cls}" data-day="${d}"${beforeLaunch?'':' data-selectable="1"'}>${isLaunch ? '🎉' : d}</div>`;
   }
 }

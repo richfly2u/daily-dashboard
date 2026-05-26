@@ -614,7 +614,7 @@ function render() {
       inp.type='text'; inp.className='item-text-input'; inp.value=isNp ? item.text : item.text;
       inp.maxLength=60;
       textSpan.replaceWith(inp);
-      inp.focus(); inp.select();
+      inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
       const save = () => {
         const v = inp.value.trim();
         if (v && v !== item.text) { item.text = v; scheduleSave(); }
@@ -958,7 +958,7 @@ function renderNameList() {
       inp.style.cssText = 'flex:1;font-size:14px;background:#0f0f13;border:1px solid #6c5ce7;border-radius:4px;padding:4px 8px;color:#e8e8ed;outline:none;font-family:inherit;';
       inp.maxLength = 20;
       span.replaceWith(inp);
-      inp.focus(); inp.select();
+      inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
       const save = () => {
         const v = inp.value.trim();
         if (v && v !== nameList[idx]) nameList[idx] = v;

@@ -141,8 +141,7 @@
   .nh-empty { font-size: 11px; color: #444; font-style: italic; }
   .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
   .add-wrap input { flex: 1; background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(52,211,153,0.4); border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; box-shadow: 0 0 16px rgba(52,211,153,0.08); }
-  .add-wrap input:focus { border-color: rgba(52,211,153,0.7); box-shadow: 0 0 24px rgba(52,211,153,0.18); }
-  .add-wrap input:focus { border-color: #6c5ce7; }
+  .add-wrap input:focus { border-color: #6c5ce7; box-shadow: 0 0 24px rgba(108,92,231,0.18); }
   .add-wrap .add-btn { background: linear-gradient(135deg, #6c5ce7, #a855f7); border: 1.5px solid rgba(168,85,247,0.5); color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; box-shadow: 0 0 16px rgba(168,85,247,0.15); }
 
   .heatmap-section { background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(236,72,153,0.4); border-radius: 14px; padding: 16px; margin-bottom: 20px; box-shadow: 0 0 20px rgba(236,72,153,0.10), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25); }
@@ -336,6 +335,8 @@ let careEvery = 1;
 let careCount = 1;
 let careInterval = 7;
 let startDate = '';
+// 全域項目範本 — 使用者新增/修改/刪除後自動同步，所有日期共用
+let itemsTemplate = [];
 const EPOCH = new Date('2025-01-01');
 
 function dk(d) { return d.toISOString().slice(0,10); }
@@ -402,6 +403,10 @@ async function loadDay(key, dateStr) {
   // If startDate is the stale 2026-05-10, treat as unset
   if (startDate === '2026-05-10') startDate = today();
   const dayData = data[dateStr];
+  // 載入全域範本
+  if (data._itemsTemplate && data._itemsTemplate.length) {
+    itemsTemplate = data._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
+  }
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
       ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
@@ -432,7 +437,7 @@ async function loadDay(key, dateStr) {
     const npItem = migrated.find(i => i.type === 'name-picker');
     if (npItem && dateStr === today()) { npItem.selected = ''; npItem.done = false; }
   } else {
-    cache[dateStr] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
+    cache[dateStr] = { items: getTemplate().map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
   // Auto-fill today's name-picker based on daily rotation
   ensureTodayNamePickerSelected(dateStr);
@@ -471,6 +476,10 @@ async function preloadRecent(key) {
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
   startDate = data._startDate || '';
+  // 載入全域範本
+  if (data._itemsTemplate && data._itemsTemplate.length) {
+    itemsTemplate = data._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
+  }
   for (const [ds, dayData] of Object.entries(data)) {
     // Skip today — already loaded and migrated by loadDay
     if (ds === dk(currentDate)) continue;
@@ -484,7 +493,7 @@ async function preloadRecent(key) {
   for (let i = 0; i < 90; i++) {
     const d = new Date(today2); d.setDate(d.getDate() - i);
     const ds = dk(d);
-    if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
+    if (!cache[ds]) cache[ds] = { items: getTemplate().map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
   }
   ensureTodayNamePickerSelected(dk(new Date()));
   renderHeatmap();
@@ -559,7 +568,7 @@ function render() {
     div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
-      `<div class="note-area" id="noteArea${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
+      `<div class="note-area" id="noteArea${i}" data-idx="${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
     if (!ro) {
       div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };
       if (item.type !== 'name-picker') {
@@ -617,7 +626,7 @@ function render() {
       inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
       const save = () => {
         const v = inp.value.trim();
-        if (v && v !== item.text) { item.text = v; scheduleSave(); }
+        if (v && v !== item.text) { item.text = v; scheduleSave(); saveTemplate(); }
         const span = document.createElement('span');
         span.className = 'item-text' + (isNp ? ' name-picker' : '');
         span.textContent = isNp ? '👤 ' + (v||item.text) : (v||item.text);
@@ -721,9 +730,13 @@ function startRealtimeSync() {
         for (let i = 0; i < 90; i++) {
           const d3 = new Date(); d3.setDate(d3.getDate()-i);
           const ds = dk(d3);
-          if (!cache[ds]) cache[ds] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+          if (!cache[ds]) cache[ds] = { items: getTemplate().map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
         }
-        if (!cache[todayKey]) cache[todayKey] = { items: DEFAULTS.map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+        if (!cache[todayKey]) cache[todayKey] = { items: getTemplate().map(x => ({...x, done:false, selected:x.selected||"", notes:""})) };
+      }
+      // 即時同步時也更新範本
+      if (data._itemsTemplate && data._itemsTemplate.length) {
+        itemsTemplate = data._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
       }
       ensureTodayNamePickerSelected(todayKey);
       render();
@@ -790,9 +803,10 @@ function renderCareOverview() {
   const ov = document.getElementById('careOverview');
   if (!ov) return;
   const now = new Date();
+  const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const rows = nameList.map(n => {
     const last = careDates[n];
-    const days = last ? Math.round((now - new Date(last)) / 86400000) : -1;
+    const days = last ? Math.round((nowUTC - parseDateUTC(last)) / 86400000) : -1;
     const eligible = days === -1 || days >= careInterval;
     let status, cls;
     if (days === -1) { status = '未曾關心'; cls = 'never'; }
@@ -825,10 +839,28 @@ function renderCareOverview() {
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function parseDateUTC(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return Date.UTC(y, m-1, d);
+}
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
-function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; if(d.items[i].locked!==false && !editMode) return; d.items.splice(i,1); render(); scheduleSave(); }
-function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
-function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
+function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; if(d.items[i].locked!==false && !editMode) return; d.items.splice(i,1); render(); scheduleSave(); saveTemplate(); }
+function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); saveTemplate(); }
+function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); saveTemplate(); }
+
+// 回傳範本定義（若無自訂範本則用 DEFAULTS）
+function getTemplate() {
+  return itemsTemplate.length ? itemsTemplate : DEFAULTS;
+}
+// 將「今天的項目定義」(不含 done/notes/selected) 存成全域範本 → Firestore
+async function saveTemplate() {
+  const d = cache[dk(currentDate)];
+  if (!d) return;
+  const defs = d.items.map(i => ({ text: i.text, type: i.type, locked: i.locked !== false }));
+  itemsTemplate = defs;
+  const ref = doc(db, "dashboard", boardKey);
+  try { await setDoc(ref, { _itemsTemplate: defs }, { merge: true }); } catch(e) {}
+}
 
 function getHistoryNotes(idx) {
   const today = currentDate;
@@ -1040,8 +1072,8 @@ async function doLogin() {
   startRealtimeSync();
 }
 
-document.getElementById('prevDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
-document.getElementById('nextDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
+document.getElementById('prevDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
+document.getElementById('nextDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
 document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); render(); };
 document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
 document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };
@@ -1062,7 +1094,7 @@ document.getElementById('editToggle').onclick = () => {
 };
 document.getElementById('resetBtn').onclick = () => {
   if (!confirm('重置今天的資料？')) return;
-  const ds=dk(currentDate); cache[ds]={items:DEFAULTS.map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
+  const ds=dk(currentDate); cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
   if (boardKey) saveCurrentDay();
 };
 document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };

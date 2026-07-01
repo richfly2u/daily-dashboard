@@ -26,13 +26,18 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
     }
-    match /dashboard/{document=**} {
+    match /dashboard/{document} {
+      // Anyone can read/write a dashboard doc by name (no auth-based access control)
+      // This is intentional for shared family/team dashboards.
+      // To restrict: add request.auth != null and a UID check.
       allow read: if true;
       allow write: if true
         // Protect _startDate from being overwritten once set
         && (!request.resource.data.keys().hasAny(['_startDate'])
             || !resource.data.keys().hasAny(['_startDate'])
-            || request.resource.data._startDate == resource.data._startDate);
+            || request.resource.data._startDate == resource.data._startDate)
+        // Limit document size (prevents runaway data)
+        && request.resource.data.size() < 102400;
     }
   }
 }

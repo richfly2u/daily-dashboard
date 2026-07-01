@@ -647,7 +647,7 @@ function render() {
       inp.onblur = save;
       inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
     };
-    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i); };
+    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i, div); };
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
@@ -855,7 +855,18 @@ function parseDateUTC(dateStr) {
   return Date.UTC(y, m-1, d);
 }
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
-function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items.splice(i,1); render(); scheduleSave(); }
+function del(i, el) {
+  const d=cache[dk(currentDate)];
+  if(!d||!d.items[i]) return;
+  d.items.splice(i,1);
+  // 直接從 DOM 移除，不依賴 render() 重繪
+  if (el && el.parentNode) el.remove();
+  // 重新編號
+  const list=document.getElementById('checklist');
+  const all=list?.querySelectorAll('.check-item');
+  if (all) all.forEach((e,j)=>{ const n=e.querySelector('.item-num'); if(n) n.textContent=j+1; });
+  scheduleSave();
+}
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 

@@ -276,6 +276,7 @@
 
   <div class="footer-actions">
     <button class="footer-btn" id="resetBtn">🗑️ 重置今天</button>
+    <button class="footer-btn" id="saveTemplateBtn">📋 存為內定</button>
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
@@ -464,10 +465,6 @@ async function saveCurrentDay() {
   try {
     await setDoc(ref, update, { merge: true });
     setStatus(true);
-    // 存完每天的 items 後再存範本（避免即時同步 race condition 覆蓋快取）
-    const defs = day.items.map(i => ({ text: i.text, type: i.type, locked: i.locked !== false }));
-    itemsTemplate = defs;
-    await setDoc(ref, { _itemsTemplate: defs }, { merge: true });
   } catch(e) { setStatus(false); }
 }
 
@@ -1135,6 +1132,10 @@ document.getElementById('resetBtn').onclick = () => {
   if (!confirm('重置今天的資料？')) return;
   const ds=dk(currentDate); cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
   if (boardKey) saveCurrentDay();
+};
+document.getElementById('saveTemplateBtn').onclick = () => {
+  saveTemplate();
+  alert('✅ 已將目前項目存為內定範本\n新日期會以此為準，其他人開新板也會繼承。');
 };
 document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
 document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveCurrentDay(); });

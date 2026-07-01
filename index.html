@@ -465,6 +465,10 @@ async function saveCurrentDay() {
   try {
     await setDoc(ref, update, { merge: true });
     setStatus(true);
+    // 存完每天的 items 後再存範本（避免即時同步 race condition 覆蓋快取）
+    const defs = day.items.map(i => ({ text: i.text, type: i.type, locked: i.locked !== false }));
+    itemsTemplate = defs;
+    await setDoc(ref, { _itemsTemplate: defs }, { merge: true });
   } catch(e) { setStatus(false); }
 }
 
@@ -633,7 +637,7 @@ function render() {
       inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
       const save = () => {
         const v = inp.value.trim();
-        if (v && v !== item.text) { item.text = v; scheduleSave(); saveTemplate(); }
+        if (v && v !== item.text) { item.text = v; scheduleSave(); }
         const span = document.createElement('span');
         span.className = 'item-text' + (isNp ? ' name-picker' : '');
         span.textContent = isNp ? '👤 ' + (v||item.text) : (v||item.text);
@@ -851,9 +855,9 @@ function parseDateUTC(dateStr) {
   return Date.UTC(y, m-1, d);
 }
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
-function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items.splice(i,1); render(); scheduleSave(); saveTemplate(); }
-function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); saveTemplate(); }
-function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); saveTemplate(); }
+function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items.splice(i,1); render(); scheduleSave(); }
+function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
+function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 
 // 回傳範本定義（若無自訂範本則用 DEFAULTS）
 function getTemplate() {

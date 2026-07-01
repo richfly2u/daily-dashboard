@@ -723,6 +723,8 @@ function startRealtimeSync() {
         if (idx !== undefined) window._editingText[idx] = el.value;
       });
 
+      // 當日資料由使用者本機主導 — 不從伺服器覆蓋（避免 race condition）
+      const localToday = cache[todayKey];
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;
         if (dd && dd.items) {
@@ -730,13 +732,11 @@ function startRealtimeSync() {
             ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
             : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
           // For today, clear name-picker selected so daily rotation always wins
-          if (ds === todayKey) {
-            const np = mapped.find(i => i.type === 'name-picker');
-            if (np) np.selected = '';
-          }
+          if (ds === todayKey) continue; // 當日快取不從伺服器蓋掉
           cache[ds] = { items: mapped };
         }
       }
+      if (localToday) cache[todayKey] = localToday; // 還原本機當日資料
       if (!cache[todayKey]) {
         for (let i = 0; i < 90; i++) {
           const d3 = new Date(); d3.setDate(d3.getDate()-i);
@@ -855,6 +855,9 @@ function parseDateUTC(dateStr) {
   return Date.UTC(y, m-1, d);
 }
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
+// 快取版本號 — 避免即時同步用伺服器舊資料蓋掉剛修改的本機資料
+let cacheVersion = 0;
+function bumpCache() { cacheVersion++; }
 function del(i, el) {
   const d=cache[dk(currentDate)];
   if(!d||!d.items[i]) return;
@@ -865,6 +868,7 @@ function del(i, el) {
   const list=document.getElementById('checklist');
   const all=list?.querySelectorAll('.check-item');
   if (all) all.forEach((e,j)=>{ const n=e.querySelector('.item-num'); if(n) n.textContent=j+1; });
+  bumpCache();
   scheduleSave();
 }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }

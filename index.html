@@ -337,6 +337,8 @@ let careInterval = 7;
 let startDate = '';
 // 全域項目範本 — 使用者新增/修改/刪除後自動同步，所有日期共用
 let itemsTemplate = [];
+// 主控板名稱 — 新開板的用戶會繼承這個板的範本作為起始內定
+const MASTER_BOARD = 'alan';
 const EPOCH = new Date('2025-01-01');
 
 function dk(d) { return d.toISOString().slice(0,10); }
@@ -406,6 +408,9 @@ async function loadDay(key, dateStr) {
   // 載入全域範本
   if (data._itemsTemplate && data._itemsTemplate.length) {
     itemsTemplate = data._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
+  } else if (boardKey !== MASTER_BOARD) {
+    // 無自訂範本且非主控板 → 從主控板繼承
+    await inheritMasterTemplate();
   }
   if (dayData && dayData.items) {
     let migrated = dayData.items.map(i => typeof i === 'string'
@@ -479,6 +484,9 @@ async function preloadRecent(key) {
   // 載入全域範本
   if (data._itemsTemplate && data._itemsTemplate.length) {
     itemsTemplate = data._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
+  } else if (boardKey !== MASTER_BOARD) {
+    // 無自訂範本且非主控板 → 從主控板繼承 (await 已在 loadDay 完成，此處 fire-and-forget)
+    inheritMasterTemplate();
   }
   for (const [ds, dayData] of Object.entries(data)) {
     // Skip today — already loaded and migrated by loadDay
@@ -860,6 +868,20 @@ async function saveTemplate() {
   itemsTemplate = defs;
   const ref = doc(db, "dashboard", boardKey);
   try { await setDoc(ref, { _itemsTemplate: defs }, { merge: true }); } catch(e) {}
+}
+// 若當前板無自訂範本且非主控板，從主控板繼承範本
+async function inheritMasterTemplate() {
+  if (boardKey === MASTER_BOARD || itemsTemplate.length) return; // 主控板或已有範本就不繼承
+  try {
+    const ref = doc(db, "dashboard", MASTER_BOARD);
+    const snap = await getDocFromServer(ref);
+    const master = snap.exists() ? snap.data() : {};
+    if (master._itemsTemplate && master._itemsTemplate.length) {
+      itemsTemplate = master._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
+      // 存成自己的範本
+      await setDoc(doc(db, "dashboard", boardKey), { _itemsTemplate: itemsTemplate }, { merge: true });
+    }
+  } catch(e) { console.warn('Inherit master template failed:', e); }
 }
 
 function getHistoryNotes(idx) {

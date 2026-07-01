@@ -124,7 +124,7 @@
   .check-item .note-btn { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; opacity: 0.4; flex-shrink: 0; }
   .check-item:hover .note-btn, .check-item.has-note .note-btn { opacity: 1; }
   .check-item.has-note .note-btn { color: #a78bfa; }
-  .check-item .del-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; }
+  .check-item .del-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; display: inline-block; }
   .check-item:hover .del-btn { opacity: 1; }
   .check-item .item-num { color: #555; font-size: 12px; font-weight: 600; width: 20px; text-align: center; flex-shrink: 0; }
   .note-area { display: none; width: 100%; padding: 4px 4px 10px; flex-shrink: 0; position: relative; }
@@ -167,7 +167,7 @@
   .item-selected { color: #a78bfa; font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 36px; }
   .item-text.name-picker { flex: none; min-width: 70px; }
   @keyframes editSlideIn { 0% { opacity: 0; transform: translateX(-40px); } 100% { opacity: 1; transform: translateX(0); } }
-  .check-item .edit-btn, .check-item .del-btn { display: none; }
+  .check-item .edit-btn, .check-item .del-btn { display: inline-block; }
   .edit-mode .edit-btn, .edit-mode .del-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
   .edit-mode .del-btn { opacity: 0.8 !important; }
@@ -616,7 +616,6 @@ function render() {
     div.querySelector('.lock-btn').onclick = e => { e.stopPropagation(); toggleLock(i); };
     if (ro) {
       div.querySelector('.edit-btn').style.display = 'none';
-      div.querySelector('.del-btn').style.display = 'none';
       div.querySelector('.lock-btn').style.display = 'none';
     }
     div.querySelector('.edit-btn').onclick = e => {
@@ -644,7 +643,7 @@ function render() {
       inp.onblur = save;
       inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
     };
-    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); const it=cache[dk(currentDate)]?.items?.[i]; if (it && it.locked!==false && !editMode) return; if (confirm(`刪除「${text}」？`)) del(i); };
+    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i); };
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
@@ -852,7 +851,7 @@ function parseDateUTC(dateStr) {
   return Date.UTC(y, m-1, d);
 }
 function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
-function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; if(d.items[i].locked!==false && !editMode) return; d.items.splice(i,1); render(); scheduleSave(); saveTemplate(); }
+function del(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items.splice(i,1); render(); scheduleSave(); saveTemplate(); }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); saveTemplate(); }
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); saveTemplate(); }
 

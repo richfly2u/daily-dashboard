@@ -906,10 +906,8 @@ function moveItem(i, dir) {
 let _dragData = null;
 function setupDragHandles() {
   document.querySelectorAll('.drag-handle').forEach(h => {
-    h.removeEventListener('touchstart', _dragStart);
-    h.removeEventListener('mousedown', _dragStart);
-    h.addEventListener('touchstart', _dragStart, { passive: false });
-    h.addEventListener('mousedown', _dragStart);
+    h.removeEventListener('pointerdown', _dragStart);
+    h.addEventListener('pointerdown', _dragStart);
   });
 }
 function _dragStart(e) {
@@ -919,6 +917,7 @@ function _dragStart(e) {
   const item = handle.closest('.check-item');
   const list = document.getElementById('checklist');
   if (!item || !list) return;
+  handle.setPointerCapture(e.pointerId);
   const allItems = [...list.querySelectorAll('.check-item')];
   const idx = allItems.indexOf(item);
   if (idx < 0) return;
@@ -938,19 +937,16 @@ function _dragStart(e) {
   d.list.insertBefore(indicator, item);
   _dragData = {
     idx, item, ghost, list, indicator,
-    offsetY: touch.clientY - rect.top
+    offsetY: e.clientY - rect.top
   };
-  document.addEventListener('touchmove', _dragMove, { passive: false });
-  document.addEventListener('touchend', _dragEnd, { passive: false });
-  document.addEventListener('mousemove', _dragMove);
-  document.addEventListener('mouseup', _dragEnd);
+  document.addEventListener('pointermove', _dragMove);
+  document.addEventListener('pointerup', _dragEnd);
 }
 function _dragMove(e) {
   if (!_dragData) return;
   e.preventDefault();
-  const touch = e.touches ? e.touches[0] : e;
   const d = _dragData;
-  d.ghost.style.top = (touch.clientY - d.offsetY) + 'px';
+  d.ghost.style.top = (e.clientY - d.offsetY) + 'px';
   // Find insertion index by Y position relative to list items
   const ph = d.list.querySelector('.drag-placeholder');
   if (!ph) return;
@@ -961,7 +957,7 @@ function _dragMove(e) {
     if (el === ph) continue;
     const rect = el.getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
-    if (touch.clientY < midY) {
+    if (e.clientY < midY) {
       insertIdx = i;
       break;
     }
@@ -983,10 +979,8 @@ function _dragMove(e) {
 }
 function _dragEnd(e) {
   if (!_dragData) return;
-  document.removeEventListener('touchmove', _dragMove);
-  document.removeEventListener('touchend', _dragEnd);
-  document.removeEventListener('mousemove', _dragMove);
-  document.removeEventListener('mouseup', _dragEnd);
+  document.removeEventListener('pointermove', _dragMove);
+  document.removeEventListener('pointerup', _dragEnd);
   const d = _dragData;
   if (d.ghost && d.ghost.parentNode) d.ghost.remove();
   d.item.classList.remove('drag-placeholder');

@@ -951,24 +951,35 @@ function _dragMove(e) {
   const touch = e.touches ? e.touches[0] : e;
   const d = _dragData;
   d.ghost.style.top = (touch.clientY - d.offsetY) + 'px';
-  // Find which item the finger is over
-  const els = document.elementsFromPoint(touch.clientX, touch.clientY);
-  const overItem = els.find(el => el.classList && el.classList.contains('check-item') && !el.classList.contains('drag-placeholder'));
-  if (!overItem) { d.indicator.style.display = 'none'; return; }
-  // Move indicator before the item we're over
+  // Find insertion index by Y position relative to list items
   const ph = d.list.querySelector('.drag-placeholder');
-  if (ph) {
-    if (overItem === ph.nextSibling) {
-      // Finger is right after placeholder → move indicator after placeholder
-      if (d.indicator.nextSibling !== ph.nextSibling) {
-        d.list.insertBefore(d.indicator, ph.nextSibling);
-      }
-    } else {
-      // Finger is elsewhere → move indicator before that item
-      d.list.insertBefore(d.indicator, overItem);
+  if (!ph) return;
+  const items = [...d.list.querySelectorAll('.check-item')];
+  let insertIdx = items.length; // default: end of list
+  for (let i = 0; i < items.length; i++) {
+    const el = items[i];
+    if (el === ph) continue;
+    const rect = el.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (touch.clientY < midY) {
+      insertIdx = i;
+      break;
     }
-    d.indicator.style.display = '';
   }
+  // Place indicator at insertIdx (before that item)
+  const target = items[insertIdx];
+  if (target) {
+    if (d.indicator.nextSibling !== target) {
+      d.list.insertBefore(d.indicator, target);
+    }
+  } else {
+    // Insert at end
+    const lastItem = items[items.length - 1];
+    if (lastItem && d.indicator.nextSibling !== lastItem.nextSibling) {
+      d.list.insertBefore(d.indicator, null);
+    }
+  }
+  d.indicator.style.display = '';
 }
 function _dragEnd(e) {
   if (!_dragData) return;

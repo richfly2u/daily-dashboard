@@ -931,12 +931,8 @@ function _dragStart(e) {
   document.body.appendChild(ghost);
   item.classList.add('drag-placeholder');
   _dragData = {
-    idx, item, ghost, list, allItems,
-    offsetY: touch.clientY - rect.top,
-    itemHeight: rect.height,
-    gap: 4,
-    _lastRenderedIdx: idx,
-    _lastNewIdx: idx
+    idx, item, ghost, list,
+    offsetY: touch.clientY - rect.top
   };
   document.addEventListener('touchmove', _dragMove, { passive: false });
   document.addEventListener('touchend', _dragEnd, { passive: false });
@@ -949,26 +945,19 @@ function _dragMove(e) {
   const touch = e.touches ? e.touches[0] : e;
   const d = _dragData;
   d.ghost.style.top = (touch.clientY - d.offsetY) + 'px';
-  const listRect = d.list.getBoundingClientRect();
-  const relY = touch.clientY - listRect.top;
-  const rawIdx = Math.round(relY / (d.itemHeight + d.gap));
-  const newIdx = Math.max(0, Math.min(d.list.children.length - 1, rawIdx));
-  if (newIdx !== _dragData._lastNewIdx) {
-    _dragData._lastNewIdx = newIdx;
-    // Move placeholder in DOM for visual feedback
-    const ph = d.list.querySelector('.drag-placeholder');
-    if (ph) {
-      const target = d.list.children[newIdx];
-      if (target && target !== ph) {
-        if (newIdx > _dragData._lastRenderedIdx) {
-          d.list.insertBefore(ph, target.nextSibling);
-        } else {
-          d.list.insertBefore(ph, target);
-        }
-      }
-    }
+  // Find which item the finger is over using elementsFromPoint
+  const els = document.elementsFromPoint(touch.clientX, touch.clientY);
+  const overItem = els.find(el => el.classList && el.classList.contains('check-item') && !el.classList.contains('drag-placeholder'));
+  if (!overItem) return;
+  const allItems = [...d.list.querySelectorAll('.check-item')];
+  const overIdx = allItems.indexOf(overItem);
+  if (overIdx < 0) return;
+  // Move placeholder to the position of the item we're over
+  const ph = d.list.querySelector('.drag-placeholder');
+  if (ph && overItem !== ph) {
+    // Move placeholder before the item we're over
+    d.list.insertBefore(ph, overItem);
   }
-  _dragData._lastRenderedIdx = newIdx;
 }
 function _dragEnd(e) {
   if (!_dragData) return;

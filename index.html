@@ -905,11 +905,19 @@ function moveItem(i, dir) {
 // === Drag-and-drop sorting (touch + mouse) ===
 let _dragData = null;
 function setupDragHandles() {
-  document.querySelectorAll('.drag-handle').forEach(h => {
-    h.onmousedown = null; h.ontouchstart = null;
-    h.addEventListener('touchstart', _dragStart, { passive: false });
-    h.addEventListener('mousedown', _dragStart);
-  });
+  // Event delegation on checklist container — survives DOM rebuild
+  const list = document.getElementById('checklist');
+  if (!list) return;
+  list.removeEventListener('touchstart', _delegateDragStart);
+  list.removeEventListener('mousedown', _delegateDragStart);
+  list.addEventListener('touchstart', _delegateDragStart, { passive: false });
+  list.addEventListener('mousedown', _delegateDragStart);
+}
+function _delegateDragStart(e) {
+  // Find if the touch/click was on a drag-handle
+  const target = e.target;
+  if (!target || !target.classList || !target.classList.contains('drag-handle')) return;
+  _dragStart(e);
 }
 function _dragStart(e) {
   if (!editMode) return;

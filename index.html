@@ -962,8 +962,7 @@ function _dragStart(e, handle) {
   list.insertBefore(indicator, item);
   _dragData = {
     idx, item, ghost, list, indicator, isTouch,
-    offsetY: startY - rect.top,
-    _lastAnimIdx: -1
+    offsetY: startY - rect.top
   };
   // Attach move/end listeners
   if (isTouch) {
@@ -994,41 +993,15 @@ function _dragMove(e) {
     const midY = rect.top + rect.height / 2;
     if (clientY < midY) { insertIdx = i; break; }
   }
-  // Move placeholder to target position with FLIP animation
+  // Move placeholder to target position
   const target = items[insertIdx];
   if (target && ph !== target) {
-    // Only animate if position actually changed
-    if (insertIdx === d._lastAnimIdx) return;
-    d._lastAnimIdx = insertIdx;
-    // FLIP: record old positions
-    const rects = new Map();
-    d.list.querySelectorAll('.check-item').forEach(el => {
-      rects.set(el, el.getBoundingClientRect().top);
-    });
-    // Move
-    if (insertIdx < items.indexOf(ph)) {
-      d.list.insertBefore(ph, target);
+    const curIdx = items.indexOf(ph);
+    if (insertIdx < curIdx) {
+      d.list.insertBefore(ph, target);           // moving up
     } else {
-      d.list.insertBefore(ph, target.nextSibling);
+      d.list.insertBefore(ph, target.nextSibling); // moving down
     }
-    // FLIP: animate from old to new position
-    requestAnimationFrame(() => {
-      d.list.querySelectorAll('.check-item').forEach(el => {
-        const oldTop = rects.get(el);
-        if (oldTop !== undefined) {
-          const newTop = el.getBoundingClientRect().top;
-          const dy = oldTop - newTop;
-          if (Math.abs(dy) > 1) {
-            el.style.transition = 'transform 0s';
-            el.style.transform = `translateY(${dy}px)`;
-            requestAnimationFrame(() => {
-              el.style.transition = 'transform 0.12s ease';
-              el.style.transform = '';
-            });
-          }
-        }
-      });
-    });
   } else if (!target && ph.nextSibling) {
     d.list.appendChild(ph);
   }

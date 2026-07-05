@@ -981,7 +981,7 @@ function _dragMove(e) {
   const d = _dragData;
   const clientY = d.isTouch ? e.touches[0].clientY : e.clientY;
   d.ghost.style.top = (clientY - d.offsetY) + 'px';
-  // Find insertion index by Y position
+  // Find insertion index by finger position relative to item gaps
   const ph = d.list.querySelector('.drag-placeholder');
   if (!ph) return;
   const items = [...d.list.querySelectorAll('.check-item')];
@@ -990,17 +990,27 @@ function _dragMove(e) {
     const el = items[i];
     if (el === ph) continue;
     const rect = el.getBoundingClientRect();
-    const midY = rect.top + rect.height / 2;
-    if (clientY < midY) { insertIdx = i; break; }
+    // Finger in top 40% of item → insert before; bottom 60% → after
+    if (clientY < rect.top + rect.height * 0.4) {
+      insertIdx = i;
+      break;
+    }
   }
-  // Move placeholder to target position
+  // Move placeholder to target position (with threshold to prevent jitter)
   const target = items[insertIdx];
   if (target && ph !== target) {
     const curIdx = items.indexOf(ph);
+    if (Math.abs(insertIdx - curIdx) <= 1) {
+      // Adjacent move: only move if finger clearly crossed the boundary
+      const tRect = target.getBoundingClientRect();
+      const boundary = tRect.top + tRect.height * 0.4;
+      if ((insertIdx < curIdx && clientY > boundary) ||
+          (insertIdx > curIdx && clientY < boundary)) return;
+    }
     if (insertIdx < curIdx) {
-      d.list.insertBefore(ph, target);           // moving up
+      d.list.insertBefore(ph, target);
     } else {
-      d.list.insertBefore(ph, target.nextSibling); // moving down
+      d.list.insertBefore(ph, target.nextSibling);
     }
   } else if (!target && ph.nextSibling) {
     d.list.appendChild(ph);

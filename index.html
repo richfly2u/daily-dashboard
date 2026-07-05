@@ -92,7 +92,10 @@
   .check-item { background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(255,255,255,0.20); border-radius: 12px; display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .item-left-col { display: none; flex-direction: row; align-items: center; gap: 1px; padding: 8px 6px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.06); }
   .edit-mode .item-left-col { display: flex; }
-  .item-body { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 12px 0 10px; min-width: 0; }
+  .item-body { display: flex; flex: 1; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 0 10px 0 8px; min-width: 0; overflow: hidden; }
+  .item-body > * { flex-shrink: 0; }
+  .item-body .item-text, .item-body .item-text strong { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-body .item-text { padding: 12px 0; font-size: 14px; }
   .check-item.gl { border-color: rgba(52,211,153,0.4); box-shadow: 0 0 16px rgba(52,211,153,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl1 { border-color: rgba(96,165,250,0.4); box-shadow: 0 0 16px rgba(96,165,250,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl2 { border-color: rgba(251,191,36,0.4); box-shadow: 0 0 16px rgba(251,191,36,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }

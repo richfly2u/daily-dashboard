@@ -94,6 +94,8 @@
   .item-body > * { flex-shrink: 0; }
   .item-body .item-text, .item-body .item-text strong { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item-body .item-text { padding: 12px 0; font-size: 14px; }
+  .edit-top-row { display: none; flex-direction: row; align-items: center; gap: 4px; padding: 6px 10px 0; width: 100%; }
+  .edit-mode .edit-top-row { display: flex; }
   .edit-mode .cb { display: none; }
   .check-item.gl { border-color: rgba(52,211,153,0.4); box-shadow: 0 0 16px rgba(52,211,153,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl1 { border-color: rgba(96,165,250,0.4); box-shadow: 0 0 16px rgba(96,165,250,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
@@ -589,12 +591,14 @@ function render() {
       var nhExtra = '';
     }
     div.innerHTML =
-      `<div class="item-body">` +
-        `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
-        `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
+      `<div class="edit-top-row">` +
         `<button class="drag-handle" data-idx="${i}">⠿</button>` +
         `<button class="edit-btn" data-idx="${i}">✏️</button>` +
         `<button class="del-btn" data-idx="${i}">✕</button>` +
+      `</div>` +
+      `<div class="item-body">` +
+        `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
+        `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
         `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
       `</div>` +
       `<div class="note-area" id="noteArea${i}" data-idx="${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;

@@ -913,6 +913,22 @@ function setupDragHandles() {
 }
 function _dragStart(e) {
   if (!editMode) return;
+  // Clean any stale drag state
+  if (_dragData) {
+    const old = _dragData;
+    if (old.ghost && old.ghost.parentNode) old.ghost.remove();
+    if (old.item) old.item.classList.remove('drag-placeholder');
+    if (old.indicator && old.indicator.parentNode) old.indicator.remove();
+    if (old.isTouch) {
+      document.removeEventListener('touchmove', _dragMove);
+      document.removeEventListener('touchend', _dragEnd);
+      document.removeEventListener('touchcancel', _dragEnd);
+    } else {
+      document.removeEventListener('mousemove', _dragMove);
+      document.removeEventListener('mouseup', _dragEnd);
+    }
+    _dragData = null;
+  }
   const handle = e.currentTarget;
   const item = handle.closest('.check-item');
   const list = document.getElementById('checklist');
@@ -984,6 +1000,7 @@ function _dragMove(e) {
 function _dragEnd(e) {
   if (!_dragData) return;
   const d = _dragData;
+  // Detach listeners first
   if (d.isTouch) {
     document.removeEventListener('touchmove', _dragMove);
     document.removeEventListener('touchend', _dragEnd);
@@ -992,26 +1009,30 @@ function _dragEnd(e) {
     document.removeEventListener('mousemove', _dragMove);
     document.removeEventListener('mouseup', _dragEnd);
   }
+  // Clean up DOM artifacts
   if (d.ghost && d.ghost.parentNode) d.ghost.remove();
-  d.item.classList.remove('drag-placeholder');
-  // Calculate final index from indicator position
-  const allItems = [...d.list.querySelectorAll('.check-item')];
-  let finalIdx = d.idx;
+  if (d.item) d.item.classList.remove('drag-placeholder');
+  // Save final index from indicator position before clearing
+  const savedIdx = d.idx;
+  const savedList = d.list;
+  let finalIdx = savedIdx;
   if (d.indicator && d.indicator.parentNode) {
     const prev = d.indicator.previousElementSibling;
     const next = d.indicator.nextElementSibling;
     d.indicator.remove();
+    const allItems = [...savedList.querySelectorAll('.check-item')];
     if (next && next.classList.contains('check-item')) {
       finalIdx = allItems.indexOf(next);
     } else if (prev && prev.classList.contains('check-item')) {
       finalIdx = allItems.indexOf(prev) + 1;
     }
   }
+  // Clear state before render (render may trigger re-entrant calls)
   _dragData = null;
-  if (finalIdx !== d.idx) {
+  if (finalIdx !== savedIdx) {
     const day = cache[dk(currentDate)];
     if (day && day.items) {
-      const t = day.items.splice(d.idx, 1)[0];
+      const t = day.items.splice(savedIdx, 1)[0];
       day.items.splice(finalIdx, 0, t);
       render(); scheduleSave();
     }

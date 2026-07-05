@@ -981,7 +981,7 @@ function _dragMove(e) {
   const d = _dragData;
   const clientY = d.isTouch ? e.touches[0].clientY : e.clientY;
   d.ghost.style.top = (clientY - d.offsetY) + 'px';
-  // Find insertion index by Y position relative to list items
+  // Find insertion index by Y position
   const ph = d.list.querySelector('.drag-placeholder');
   if (!ph) return;
   const items = [...d.list.querySelectorAll('.check-item')];
@@ -991,18 +991,25 @@ function _dragMove(e) {
     if (el === ph) continue;
     const rect = el.getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
-    if (clientY < midY) {
-      insertIdx = i;
-      break;
-    }
+    if (clientY < midY) { insertIdx = i; break; }
   }
+  // Move placeholder to target position (other items shift automatically)
   const target = items[insertIdx];
-  if (target) {
-    if (d.indicator.nextSibling !== target) d.list.insertBefore(d.indicator, target);
-  } else {
-    d.list.insertBefore(d.indicator, null);
+  if (target && ph !== target) {
+    if (target === ph.nextSibling) {
+      // Already in correct position relative to next sibling
+    } else {
+      // Need to handle both moving up and down correctly
+      if (insertIdx < items.indexOf(ph)) {
+        d.list.insertBefore(ph, target); // moving up
+      } else {
+        d.list.insertBefore(ph, target.nextSibling); // moving down
+      }
+    }
+  } else if (!target && ph.nextSibling) {
+    // Moving to end
+    d.list.appendChild(ph);
   }
-  d.indicator.style.display = '';
 }
 function _dragEnd(e) {
   if (!_dragData) return;
@@ -1019,22 +1026,11 @@ function _dragEnd(e) {
   // Clean up DOM artifacts
   if (d.ghost && d.ghost.parentNode) d.ghost.remove();
   if (d.item) d.item.classList.remove('drag-placeholder');
-  // Save final index from indicator position before clearing
+  // Get final index from placeholder's DOM position
   const savedIdx = d.idx;
-  const savedList = d.list;
-  let finalIdx = savedIdx;
-  if (d.indicator && d.indicator.parentNode) {
-    const prev = d.indicator.previousElementSibling;
-    const next = d.indicator.nextElementSibling;
-    d.indicator.remove();
-    const allItems = [...savedList.querySelectorAll('.check-item')];
-    if (next && next.classList.contains('check-item')) {
-      finalIdx = allItems.indexOf(next);
-    } else if (prev && prev.classList.contains('check-item')) {
-      finalIdx = allItems.indexOf(prev) + 1;
-    }
-  }
-  // Clear state before render (render may trigger re-entrant calls)
+  const allItems = [...d.list.querySelectorAll('.check-item')];
+  const phIdx = allItems.indexOf(d.item);
+  const finalIdx = phIdx >= 0 ? phIdx : savedIdx;
   _dragData = null;
   if (finalIdx !== savedIdx) {
     const day = cache[dk(currentDate)];

@@ -83,11 +83,11 @@
   .progress-bar { height: 6px; background: #282838; border-radius: 3px; overflow: hidden; }
   .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #a855f7); border-radius: 3px; transition: width .5s ease; }
 
-  .checklist-wrap { margin-bottom: 20px; }
-  .edit-toggle-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
-  .edit-toggle-wrap .edit-toggle { background: #1e1e28; border: 1px solid #333; color: #888; font-size: 13px; padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all .3s ease; box-shadow: 0 2px 8px rgba(0,0,0,.4); font-weight: 600; letter-spacing: 1px; }
-  .edit-toggle-wrap .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; }
-  .edit-toggle-wrap .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 700; }
+  .checklist-wrap { display: flex; gap: 8px; margin-bottom: 20px; align-items: flex-start; }
+  .checklist-wrap .edit-bar { display: flex; flex-shrink: 0; padding-top: 4px; }
+  .checklist-wrap .edit-bar .edit-toggle { background: #1e1e28; border: 1px solid #333; color: #888; font-size: 10px; padding: 10px 6px; border-radius: 50px; cursor: pointer; transition: all .3s ease; box-shadow: 0 2px 8px rgba(0,0,0,.4); writing-mode: vertical-rl; letter-spacing: 4px; }
+  .checklist-wrap .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; }
+  .checklist-wrap .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 700; }
   .checklist { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
   .check-item { background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(255,255,255,0.20); border-radius: 12px; display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .item-body { display: flex; flex: 1; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 0 10px; min-width: 0; overflow: hidden; }
@@ -267,8 +267,8 @@
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
-  <div class="edit-toggle-wrap"><button class="edit-toggle" id="editToggle">✏️ 編輯項目</button></div>
   <div class="checklist-wrap">
+    <div class="edit-bar"><button class="edit-toggle" id="editToggle">✏️編輯項目</button></div>
     <div class="checklist" id="checklist"></div>
   </div>
 

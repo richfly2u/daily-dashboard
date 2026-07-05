@@ -962,7 +962,8 @@ function _dragStart(e, handle) {
   list.insertBefore(indicator, item);
   _dragData = {
     idx, item, ghost, list, indicator, isTouch,
-    offsetY: startY - rect.top
+    offsetY: startY - rect.top,
+    _lastAnimIdx: -1
   };
   // Attach move/end listeners
   if (isTouch) {
@@ -996,6 +997,9 @@ function _dragMove(e) {
   // Move placeholder to target position with FLIP animation
   const target = items[insertIdx];
   if (target && ph !== target) {
+    // Only animate if position actually changed
+    if (insertIdx === d._lastAnimIdx) return;
+    d._lastAnimIdx = insertIdx;
     // FLIP: record old positions
     const rects = new Map();
     d.list.querySelectorAll('.check-item').forEach(el => {
@@ -1018,7 +1022,7 @@ function _dragMove(e) {
             el.style.transition = 'transform 0s';
             el.style.transform = `translateY(${dy}px)`;
             requestAnimationFrame(() => {
-              el.style.transition = 'transform 0.2s ease';
+              el.style.transition = 'transform 0.12s ease';
               el.style.transform = '';
             });
           }

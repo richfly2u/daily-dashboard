@@ -906,25 +906,27 @@ function moveItem(i, dir) {
 let _dragData = null;
 function setupDragHandles() {
   document.querySelectorAll('.drag-handle').forEach(h => {
-    h.removeEventListener('pointerdown', _dragStart);
-    h.addEventListener('pointerdown', _dragStart);
+    h.onmousedown = null; h.ontouchstart = null;
+    h.addEventListener('touchstart', _dragStart, { passive: false });
+    h.addEventListener('mousedown', _dragStart);
   });
 }
 function _dragStart(e) {
   if (!editMode) return;
-  e.preventDefault();
   const handle = e.currentTarget;
   const item = handle.closest('.check-item');
   const list = document.getElementById('checklist');
   if (!item || !list) return;
-  handle.setPointerCapture(e.pointerId);
+  // Only start if we're actually dragging the handle, not just tapping
+  const isTouch = e.type === 'touchstart';
+  const startY = isTouch ? e.touches[0].clientY : e.clientY;
   const allItems = [...list.querySelectorAll('.check-item')];
   const idx = allItems.indexOf(item);
   if (idx < 0) return;
-  const touch = e.touches ? e.touches[0] : e;
+  const rect = item.getBoundingClientRect();
+  // Create ghost
   const ghost = item.cloneNode(true);
   ghost.className = item.className + ' drag-ghost';
-  const rect = item.getBoundingClientRect();
   ghost.style.width = rect.width + 'px';
   ghost.style.left = rect.left + 'px';
   ghost.style.top = rect.top + 'px';
@@ -934,54 +936,62 @@ function _dragStart(e) {
   const indicator = document.createElement('div');
   indicator.className = 'drag-indicator';
   indicator.style.display = 'none';
-  d.list.insertBefore(indicator, item);
+  list.insertBefore(indicator, item);
   _dragData = {
-    idx, item, ghost, list, indicator,
-    offsetY: e.clientY - rect.top
+    idx, item, ghost, list, indicator, isTouch,
+    offsetY: startY - rect.top
   };
-  document.addEventListener('pointermove', _dragMove);
-  document.addEventListener('pointerup', _dragEnd);
+  // Attach move/end listeners
+  if (isTouch) {
+    document.addEventListener('touchmove', _dragMove, { passive: false });
+    document.addEventListener('touchend', _dragEnd);
+    document.addEventListener('touchcancel', _dragEnd);
+  } else {
+    document.addEventListener('mousemove', _dragMove);
+    document.addEventListener('mouseup', _dragEnd);
+  }
+  e.preventDefault();
 }
 function _dragMove(e) {
   if (!_dragData) return;
   e.preventDefault();
   const d = _dragData;
-  d.ghost.style.top = (e.clientY - d.offsetY) + 'px';
+  const clientY = d.isTouch ? e.touches[0].clientY : e.clientY;
+  d.ghost.style.top = (clientY - d.offsetY) + 'px';
   // Find insertion index by Y position relative to list items
   const ph = d.list.querySelector('.drag-placeholder');
   if (!ph) return;
   const items = [...d.list.querySelectorAll('.check-item')];
-  let insertIdx = items.length; // default: end of list
+  let insertIdx = items.length;
   for (let i = 0; i < items.length; i++) {
     const el = items[i];
     if (el === ph) continue;
     const rect = el.getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
-    if (e.clientY < midY) {
+    if (clientY < midY) {
       insertIdx = i;
       break;
     }
   }
-  // Place indicator at insertIdx (before that item)
   const target = items[insertIdx];
   if (target) {
-    if (d.indicator.nextSibling !== target) {
-      d.list.insertBefore(d.indicator, target);
-    }
+    if (d.indicator.nextSibling !== target) d.list.insertBefore(d.indicator, target);
   } else {
-    // Insert at end
-    const lastItem = items[items.length - 1];
-    if (lastItem && d.indicator.nextSibling !== lastItem.nextSibling) {
-      d.list.insertBefore(d.indicator, null);
-    }
+    d.list.insertBefore(d.indicator, null);
   }
   d.indicator.style.display = '';
 }
 function _dragEnd(e) {
   if (!_dragData) return;
-  document.removeEventListener('pointermove', _dragMove);
-  document.removeEventListener('pointerup', _dragEnd);
   const d = _dragData;
+  if (d.isTouch) {
+    document.removeEventListener('touchmove', _dragMove);
+    document.removeEventListener('touchend', _dragEnd);
+    document.removeEventListener('touchcancel', _dragEnd);
+  } else {
+    document.removeEventListener('mousemove', _dragMove);
+    document.removeEventListener('mouseup', _dragEnd);
+  }
   if (d.ghost && d.ghost.parentNode) d.ghost.remove();
   d.item.classList.remove('drag-placeholder');
   // Calculate final index from indicator position

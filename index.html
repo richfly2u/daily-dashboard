@@ -1306,9 +1306,13 @@ document.getElementById('editToggle').onclick = () => {
   document.getElementById('editToggle').className = 'edit-toggle' + (editMode ? ' active' : '');
   render();
   if (editMode) {
-    // Scroll first item to center of viewport
-    const first = document.querySelector('.check-item');
-    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scroll checklist container to center of viewport
+    const wrap = document.querySelector('.checklist-wrap') || document.querySelector('.checklist');
+    if (wrap) {
+      const top = wrap.getBoundingClientRect().top + window.pageYOffset;
+      const vh = window.innerHeight;
+      window.scrollTo({ top: top - vh * 0.25, behavior: 'smooth' });
+    }
   }
 };
 document.getElementById('resetBtn').onclick = () => {

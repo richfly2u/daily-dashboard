@@ -1,7 +1,7 @@
 // Daily Dashboard Service Worker — always fetch from network, never cache
 // Version: 2026-07-05-v3 (bumped to force cache refresh for reorder feature)
 
-const CACHE = 'daily-dash-v3';
+const CACHE = 'daily-dash-v4';
 
 self.addEventListener('install', e => {
   // Don't pre-cache anything — let network handle it

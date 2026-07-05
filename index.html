@@ -915,11 +915,11 @@ function setupDragHandles() {
 }
 function _delegateDragStart(e) {
   // Find if the touch/click was on a drag-handle
-  const target = e.target;
-  if (!target || !target.classList || !target.classList.contains('drag-handle')) return;
-  _dragStart(e);
+  const target = e.target.closest('.drag-handle');
+  if (!target) return;
+  _dragStart(e, target);
 }
-function _dragStart(e) {
+function _dragStart(e, handle) {
   if (!editMode) return;
   // Clean any stale drag state
   if (_dragData) {
@@ -937,7 +937,6 @@ function _dragStart(e) {
     }
     _dragData = null;
   }
-  const handle = e.currentTarget;
   const item = handle.closest('.check-item');
   const list = document.getElementById('checklist');
   if (!item || !list) return;

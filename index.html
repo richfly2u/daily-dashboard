@@ -88,7 +88,10 @@
   .checklist-wrap .edit-bar .edit-toggle:hover { border-color: #fbbf24; color: #fbbf24; transform: scale(1.08); }
   .checklist-wrap .edit-bar .edit-toggle.active { background: #fbbf24; border-color: #fbbf24; color: #0f0f13; font-weight: 700; }
   .checklist { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
-  .check-item { background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(255,255,255,0.20); border-radius: 12px; padding: 0 12px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
+  .check-item { background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(255,255,255,0.20); border-radius: 12px; display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
+  .item-left-col { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 8px 4px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.06); }
+  .edit-mode .item-left-col { display: flex; }
+  .item-body { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 12px 0 10px; min-width: 0; }
   .check-item.gl { border-color: rgba(52,211,153,0.4); box-shadow: 0 0 16px rgba(52,211,153,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl1 { border-color: rgba(96,165,250,0.4); box-shadow: 0 0 16px rgba(96,165,250,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
   .check-item.gl2 { border-color: rgba(251,191,36,0.4); box-shadow: 0 0 16px rgba(251,191,36,0.08), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.20); }
@@ -582,9 +585,19 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    div.innerHTML = `<button class="drag-handle" data-idx="${i}">⠿</button><span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${i > 0 ? `<button class="move-btn" data-idx="${i}" data-dir="-1">↑</button>` : ''}${i < items.length - 1 ? `<button class="move-btn" data-idx="${i}" data-dir="1">↓</button>` : ''}${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
-      `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
-      `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
+    div.innerHTML =
+      `<div class="item-left-col">` +
+        `<button class="drag-handle" data-idx="${i}">⠿</button>` +
+        `${i > 0 ? `<button class="move-btn" data-idx="${i}" data-dir="-1">↑</button>` : ''}` +
+        `${i < items.length - 1 ? `<button class="move-btn" data-idx="${i}" data-dir="1">↓</button>` : ''}` +
+      `</div>` +
+      `<div class="item-body">` +
+        `<span class="item-num">${i+1}</span><div class="cb">✓</div>` +
+        `<button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}` +
+        `<button class="del-btn" data-idx="${i}">✕</button>` +
+        `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
+        `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
+      `</div>` +
       `<div class="note-area" id="noteArea${i}" data-idx="${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
     if (!ro) {
       div.querySelector('.cb').onclick = (e) => { if (editMode) return; toggle(i); };

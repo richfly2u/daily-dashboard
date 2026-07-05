@@ -1305,6 +1305,11 @@ document.getElementById('editToggle').onclick = () => {
   document.getElementById('editToggle').textContent = editMode ? '✅完成編輯' : '✏️編輯項目';
   document.getElementById('editToggle').className = 'edit-toggle' + (editMode ? ' active' : '');
   render();
+  if (editMode) {
+    // Scroll first item to center of viewport
+    const first = document.querySelector('.check-item');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 };
 document.getElementById('resetBtn').onclick = () => {
   if (!confirm('重置今天的資料？')) return;

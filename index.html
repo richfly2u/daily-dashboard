@@ -592,8 +592,6 @@ function render() {
     div.innerHTML =
       `<div class="item-left-col">` +
         `<button class="drag-handle" data-idx="${i}">⠿</button>` +
-        `${i > 0 ? `<button class="move-btn" data-idx="${i}" data-dir="-1">↑</button>` : ''}` +
-        `${i < items.length - 1 ? `<button class="move-btn" data-idx="${i}" data-dir="1">↓</button>` : ''}` +
       `</div>` +
       `<div class="item-body">` +
         `<span class="item-num">${i+1}</span><div class="cb">✓</div>` +

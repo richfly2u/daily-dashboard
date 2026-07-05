@@ -185,7 +185,8 @@
   .edit-mode .drag-handle:active { cursor: grabbing; background: rgba(168,85,247,0.2); border-color: #a78bfa; }
   .drag-ghost { position: fixed; pointer-events: none; z-index: 9999; opacity: 0.9; transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; transition: none; max-width: calc(720px - 32px); }
   .drag-ghost .cb { display: none !important; }
-  .drag-placeholder { opacity: 0.2; border: 2px dashed #6c5ce7 !important; }
+  .drag-placeholder { opacity: 0.3; border: 2px dashed #6c5ce7 !important; }
+  .drag-indicator { height: 3px; background: linear-gradient(90deg, #6c5ce7, #a855f7); border-radius: 2px; margin: 0; flex-shrink: 0; box-shadow: 0 0 8px rgba(168,85,247,0.5); }
   /* In edit mode, blur right-side buttons (lock, note) */
   .edit-mode .lock-btn, .edit-mode .note-btn { opacity: 0.15; pointer-events: none; filter: blur(2px); }
   .edit-mode .cb { pointer-events: none; }
@@ -930,8 +931,13 @@ function _dragStart(e) {
   ghost.style.top = rect.top + 'px';
   document.body.appendChild(ghost);
   item.classList.add('drag-placeholder');
+  // Create insertion indicator
+  const indicator = document.createElement('div');
+  indicator.className = 'drag-indicator';
+  indicator.style.display = 'none';
+  d.list.insertBefore(indicator, item);
   _dragData = {
-    idx, item, ghost, list,
+    idx, item, ghost, list, indicator,
     offsetY: touch.clientY - rect.top
   };
   document.addEventListener('touchmove', _dragMove, { passive: false });
@@ -945,18 +951,23 @@ function _dragMove(e) {
   const touch = e.touches ? e.touches[0] : e;
   const d = _dragData;
   d.ghost.style.top = (touch.clientY - d.offsetY) + 'px';
-  // Find which item the finger is over using elementsFromPoint
+  // Find which item the finger is over
   const els = document.elementsFromPoint(touch.clientX, touch.clientY);
   const overItem = els.find(el => el.classList && el.classList.contains('check-item') && !el.classList.contains('drag-placeholder'));
-  if (!overItem) return;
-  const allItems = [...d.list.querySelectorAll('.check-item')];
-  const overIdx = allItems.indexOf(overItem);
-  if (overIdx < 0) return;
-  // Move placeholder to the position of the item we're over
+  if (!overItem) { d.indicator.style.display = 'none'; return; }
+  // Move indicator before the item we're over
   const ph = d.list.querySelector('.drag-placeholder');
-  if (ph && overItem !== ph) {
-    // Move placeholder before the item we're over
-    d.list.insertBefore(ph, overItem);
+  if (ph) {
+    if (overItem === ph.nextSibling) {
+      // Finger is right after placeholder → move indicator after placeholder
+      if (d.indicator.nextSibling !== ph.nextSibling) {
+        d.list.insertBefore(d.indicator, ph.nextSibling);
+      }
+    } else {
+      // Finger is elsewhere → move indicator before that item
+      d.list.insertBefore(d.indicator, overItem);
+    }
+    d.indicator.style.display = '';
   }
 }
 function _dragEnd(e) {
@@ -967,21 +978,29 @@ function _dragEnd(e) {
   document.removeEventListener('mouseup', _dragEnd);
   const d = _dragData;
   if (d.ghost && d.ghost.parentNode) d.ghost.remove();
-  // Get final index from DOM position
-  const allItems = [...d.list.querySelectorAll('.check-item')];
-  const phIdx = allItems.findIndex(el => el === _dragData.item && el.classList.contains('drag-placeholder'));
-  const finalIdx = phIdx >= 0 ? phIdx : d.idx;
   d.item.classList.remove('drag-placeholder');
+  // Calculate final index from indicator position
+  const allItems = [...d.list.querySelectorAll('.check-item')];
+  let finalIdx = d.idx;
+  if (d.indicator && d.indicator.parentNode) {
+    const prev = d.indicator.previousElementSibling;
+    const next = d.indicator.nextElementSibling;
+    d.indicator.remove();
+    if (next && next.classList.contains('check-item')) {
+      finalIdx = allItems.indexOf(next);
+    } else if (prev && prev.classList.contains('check-item')) {
+      finalIdx = allItems.indexOf(prev) + 1;
+    }
+  }
+  _dragData = null;
   if (finalIdx !== d.idx) {
     const day = cache[dk(currentDate)];
     if (day && day.items) {
       const t = day.items.splice(d.idx, 1)[0];
       day.items.splice(finalIdx, 0, t);
       render(); scheduleSave();
-      return;
     }
   }
-  _dragData = null;
 }
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 

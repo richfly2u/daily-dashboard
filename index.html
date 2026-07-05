@@ -171,9 +171,14 @@
   .edit-mode .edit-btn, .edit-mode .del-btn, .edit-mode .move-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
   .edit-mode .del-btn { opacity: 0.8 !important; }
-  .check-item .move-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; flex-shrink: 0; display: none; }
-  .edit-mode .move-btn { display: inline-block !important; opacity: 0.5; }
-  .edit-mode .move-btn:active { opacity: 1; }
+  .check-item .move-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); color: #60a5fa; font-size: 14px; cursor: pointer; padding: 6px 5px; border-radius: 6px; flex-shrink: 0; display: none; line-height: 1; min-width: 30px; text-align: center; }
+  .edit-mode .move-btn { display: inline-block !important; opacity: 0.85; }
+  .edit-mode .move-btn:active { opacity: 1; background: rgba(96,165,250,0.25); }
+  .check-item .drag-handle { background: none; border: none; color: #555; font-size: 16px; cursor: grab; padding: 4px; border-radius: 4px; flex-shrink: 0; display: none; touch-action: none; }
+  .edit-mode .drag-handle { display: inline-block !important; }
+  .edit-mode .drag-handle:active { cursor: grabbing; color: #a78bfa; }
+  .drag-ghost { position: fixed; pointer-events: none; z-index: 9999; opacity: 0.9; transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; transition: none; max-width: calc(720px - 32px); }
+  .drag-placeholder { opacity: 0.2; border: 2px dashed #6c5ce7 !important; }
   /* In edit mode, blur right-side buttons (lock, note) */
   .edit-mode .lock-btn, .edit-mode .note-btn { opacity: 0.15; pointer-events: none; filter: blur(2px); }
   .edit-mode .cb { pointer-events: none; }
@@ -577,7 +582,7 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${i > 0 ? `<button class="move-btn" data-idx="${i}" data-dir="-1">↑</button>` : ''}${i < items.length - 1 ? `<button class="move-btn" data-idx="${i}" data-dir="1">↓</button>` : ''}${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
+    div.innerHTML = `<button class="drag-handle" data-idx="${i}">⠿</button><span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${i > 0 ? `<button class="move-btn" data-idx="${i}" data-dir="-1">↑</button>` : ''}${i < items.length - 1 ? `<button class="move-btn" data-idx="${i}" data-dir="1">↓</button>` : ''}${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
       `<div class="note-area" id="noteArea${i}" data-idx="${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
@@ -659,6 +664,7 @@ function render() {
   document.querySelectorAll('.note-close-btn').forEach(btn => {
     btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
   });
+  setupDragHandles();
   // === Care Overview toggle (below last name-picker item) ===
   const toggleWrap = document.getElementById('careToggleWrap');
   if (toggleWrap) {
@@ -881,6 +887,99 @@ function moveItem(i, dir) {
   if (ni < 0 || ni >= d.items.length) return;
   d.items.splice(i,1); d.items.splice(ni,0,t);
   render(); scheduleSave();
+}
+// === Drag-and-drop sorting (touch + mouse) ===
+let _dragData = null;
+function setupDragHandles() {
+  document.querySelectorAll('.drag-handle').forEach(h => {
+    h.removeEventListener('touchstart', _dragStart);
+    h.removeEventListener('mousedown', _dragStart);
+    h.addEventListener('touchstart', _dragStart, { passive: false });
+    h.addEventListener('mousedown', _dragStart);
+  });
+}
+function _dragStart(e) {
+  if (!editMode) return;
+  e.preventDefault();
+  const handle = e.currentTarget;
+  const item = handle.closest('.check-item');
+  const list = document.getElementById('checklist');
+  if (!item || !list) return;
+  const allItems = [...list.querySelectorAll('.check-item')];
+  const idx = allItems.indexOf(item);
+  if (idx < 0) return;
+  const touch = e.touches ? e.touches[0] : e;
+  const ghost = item.cloneNode(true);
+  ghost.className = item.className + ' drag-ghost';
+  const rect = item.getBoundingClientRect();
+  ghost.style.width = rect.width + 'px';
+  ghost.style.left = rect.left + 'px';
+  ghost.style.top = rect.top + 'px';
+  document.body.appendChild(ghost);
+  item.classList.add('drag-placeholder');
+  _dragData = {
+    idx, item, ghost, list, allItems,
+    offsetY: touch.clientY - rect.top,
+    itemHeight: rect.height,
+    gap: 4,
+    _lastRenderedIdx: idx,
+    _lastNewIdx: idx
+  };
+  document.addEventListener('touchmove', _dragMove, { passive: false });
+  document.addEventListener('touchend', _dragEnd, { passive: false });
+  document.addEventListener('mousemove', _dragMove);
+  document.addEventListener('mouseup', _dragEnd);
+}
+function _dragMove(e) {
+  if (!_dragData) return;
+  e.preventDefault();
+  const touch = e.touches ? e.touches[0] : e;
+  const d = _dragData;
+  d.ghost.style.top = (touch.clientY - d.offsetY) + 'px';
+  const listRect = d.list.getBoundingClientRect();
+  const relY = touch.clientY - listRect.top;
+  const rawIdx = Math.round(relY / (d.itemHeight + d.gap));
+  const newIdx = Math.max(0, Math.min(d.list.children.length - 1, rawIdx));
+  if (newIdx !== _dragData._lastNewIdx) {
+    _dragData._lastNewIdx = newIdx;
+    // Move placeholder in DOM for visual feedback
+    const ph = d.list.querySelector('.drag-placeholder');
+    if (ph) {
+      const target = d.list.children[newIdx];
+      if (target && target !== ph) {
+        if (newIdx > _dragData._lastRenderedIdx) {
+          d.list.insertBefore(ph, target.nextSibling);
+        } else {
+          d.list.insertBefore(ph, target);
+        }
+      }
+    }
+  }
+  _dragData._lastRenderedIdx = newIdx;
+}
+function _dragEnd(e) {
+  if (!_dragData) return;
+  document.removeEventListener('touchmove', _dragMove);
+  document.removeEventListener('touchend', _dragEnd);
+  document.removeEventListener('mousemove', _dragMove);
+  document.removeEventListener('mouseup', _dragEnd);
+  const d = _dragData;
+  if (d.ghost && d.ghost.parentNode) d.ghost.remove();
+  // Get final index from DOM position
+  const allItems = [...d.list.querySelectorAll('.check-item')];
+  const phIdx = allItems.findIndex(el => el === _dragData.item && el.classList.contains('drag-placeholder'));
+  const finalIdx = phIdx >= 0 ? phIdx : d.idx;
+  d.item.classList.remove('drag-placeholder');
+  if (finalIdx !== d.idx) {
+    const day = cache[dk(currentDate)];
+    if (day && day.items) {
+      const t = day.items.splice(d.idx, 1)[0];
+      day.items.splice(finalIdx, 0, t);
+      render(); scheduleSave();
+      return;
+    }
+  }
+  _dragData = null;
 }
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 

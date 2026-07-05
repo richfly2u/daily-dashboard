@@ -167,9 +167,12 @@
   .item-text.name-picker { flex: none; min-width: 70px; }
   @keyframes editSlideIn { 0% { opacity: 0; transform: translateX(-40px); } 100% { opacity: 1; transform: translateX(0); } }
   .check-item .edit-btn, .check-item .del-btn { display: inline-block; }
-  .edit-mode .edit-btn, .edit-mode .del-btn { display: inline-block !important; }
+  .edit-mode .edit-btn, .edit-mode .del-btn, .edit-mode .move-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
   .edit-mode .del-btn { opacity: 0.8 !important; }
+  .check-item .move-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 4px 2px; border-radius: 4px; flex-shrink: 0; display: none; }
+  .edit-mode .move-btn { display: inline-block !important; opacity: 0.5; }
+  .edit-mode .move-btn:active { opacity: 1; }
   /* In edit mode, blur right-side buttons (lock, note) */
   .edit-mode .lock-btn, .edit-mode .note-btn { opacity: 0.15; pointer-events: none; filter: blur(2px); }
   .edit-mode .cb { pointer-events: none; }
@@ -573,7 +576,7 @@ function render() {
       extraHTML = `<span class="item-text">${esc(text)}</span>`;
       var nhExtra = '';
     }
-    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
+    div.innerHTML = `<span class="item-num">${i+1}</span><div class="cb">✓</div><button class="edit-btn" data-idx="${i}">✏️</button>${i > 0 ? `<button class="move-btn" data-idx="${i}" data-dir="-1">↑</button>` : ''}${i < items.length - 1 ? `<button class="move-btn" data-idx="${i}" data-dir="1">↓</button>` : ''}${extraHTML}<button class="del-btn" data-idx="${i}">✕</button>` +
       `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
       `${i > 0 ? `<button class="note-btn" data-idx="${i}">📝</button>` : ''}` +
       `<div class="note-area" id="noteArea${i}" data-idx="${i}">${nhExtra}<textarea data-idx="${i}" placeholder="寫備註...">${esc(notes)}</textarea><button class="note-close-btn" data-idx="${i}">▲</button></div>`;
@@ -644,6 +647,9 @@ function render() {
       inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
     };
     div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i, div); };
+    div.querySelectorAll('.move-btn').forEach(btn => {
+      btn.onclick = e => { e.stopPropagation(); moveItem(parseInt(btn.dataset.idx), parseInt(btn.dataset.dir)); };
+    });
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
@@ -868,6 +874,13 @@ function del(i, el) {
   scheduleSave();
 }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
+function moveItem(i, dir) {
+  const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return;
+  const t = d.items[i]; const ni = i + dir;
+  if (ni < 0 || ni >= d.items.length) return;
+  d.items.splice(i,1); d.items.splice(ni,0,t);
+  render(); scheduleSave();
+}
 function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
 
 // 回傳範本定義（若無自訂範本則用 DEFAULTS）

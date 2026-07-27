@@ -455,11 +455,21 @@ async function loadDay(key, dateStr) {
       if (!migrated[j].text && migrated[j].type === def.type) migrated[j].text = def.text;
     });
     cache[dateStr] = { items: migrated };
+    // ✅ 確保 name-picker 項目永遠存在（即使 Firestore 沒有）
+    if (!migrated.find(i => i.type === 'name-picker')) {
+      const np = DEFAULTS.find(i => i.type === 'name-picker');
+      if (np) cache[dateStr].items.push({...np, done:false, selected:'', notes:''});
+    }
     // Force name-picker selected to empty for today so rotation always wins
-    const npItem = migrated.find(i => i.type === 'name-picker');
+    const npItem = cache[dateStr].items.find(i => i.type === 'name-picker');
     if (npItem && dateStr === today()) { npItem.selected = ''; npItem.done = false; }
   } else {
     cache[dateStr] = { items: getTemplate().map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
+    // ✅ 確保 name-picker 項目永遠存在
+    if (!cache[dateStr].items.find(i => i.type === 'name-picker')) {
+      const np = DEFAULTS.find(i => i.type === 'name-picker');
+      if (np) cache[dateStr].items.push({...np, done:false, selected:'', notes:''});
+    }
   }
   // Auto-fill today's name-picker based on daily rotation
   ensureTodayNamePickerSelected(dateStr);
@@ -512,6 +522,11 @@ async function preloadRecent(key) {
       cache[ds] = { items: dayData.items.map(i => typeof i === 'string'
         ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
         : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}) };
+      // ✅ 確保 name-picker 項目永遠存在
+      if (!cache[ds].items.find(i => i.type === 'name-picker')) {
+        const np = DEFAULTS.find(i => i.type === 'name-picker');
+        if (np) cache[ds].items.push({...np, done:false, selected:'', notes:''});
+      }
     }
   }
   const today2 = new Date();

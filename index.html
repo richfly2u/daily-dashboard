@@ -228,6 +228,165 @@
   .cute-dialog .btn-row .close-btn:hover { background:#333; }
   .cute-dialog .btn-row .save-btn { flex:1; background:linear-gradient(135deg,#6c5ce7,#a855f7); border:none; border-radius:10px; padding:10px; color:white; font-size:14px; font-weight:600; cursor:pointer; }
   @media (max-width: 480px) { .app { padding: 16px 12px 32px; } }
+
+/* ══════════ FIGMA THEME OVERRIDE ══════════ */
+/* 白底、粉彩色塊、黑色強調、藥丸形 — Figma 設計語言 */
+body { background: #ffffff !important; color: #161616 !important; font-family: 'Inter', -apple-system, sans-serif !important; }
+body::before, body::after { display: none !important; }
+
+/* 標題區 */
+.app { max-width: 720px; }
+.header h1 { color: #161616; font-weight: 700; letter-spacing: -0.4px; }
+
+/* 登入 */
+.login-screen h2 { color: #161616; }
+.login-screen p { color: #666; }
+.login-screen input { background: #f7f7f5; border: 1.5px solid #e6e6e6; color: #161616; border-radius: 999px; }
+.login-screen input:focus { border-color: #000; }
+.login-screen .login-btn { background: #000; border-radius: 999px; color: #fff; }
+.login-screen .hint { color: #999; }
+
+/* 連續天數徽章 */
+.streak-badge { background: #000 !important; border-radius: 999px; }
+
+/* 日期導航 */
+.date-nav { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 999px !important; box-shadow: none !important; }
+.date-nav .date-label { color: #161616; }
+.date-nav .date-label .weekday { color: #888; }
+.date-nav button { color: #888; }
+.date-nav .today-btn { color: #000; font-weight: 700; }
+
+/* 統計卡 — 粉彩色塊 */
+.stats::before { display: none; }
+.stat-card { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 16px !important; box-shadow: none !important; backdrop-filter: none !important; }
+.stat-card.c1 { background: #f4ecd6 !important; border-color: #e8dcc0 !important; box-shadow: none !important; }
+.stat-card.c2 { background: #e8d9f0 !important; border-color: #d8c4e6 !important; box-shadow: none !important; }
+.stat-card.c3 { background: #d9ecf0 !important; border-color: #c2dde3 !important; box-shadow: none !important; }
+.stat-card::before { display: none !important; }
+.stat-card .num { color: #161616 !important; }
+.stat-card .label { color: #666 !important; }
+
+/* 進度條 */
+.progress-wrap { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 999px !important; box-shadow: none !important; }
+.progress-top .pct { color: #000 !important; }
+.progress-bar { background: #e6e6e6; border-radius: 999px; }
+.progress-fill { background: #000 !important; border-radius: 999px; }
+
+/* 待辦項目 — 藥丸形 + 彩色交錯 */
+.checklist-wrap .edit-bar .edit-toggle { background: #f7f7f5; border: 1px solid #e6e6e6; color: #666; border-radius: 999px; box-shadow: none; }
+.checklist-wrap .edit-bar .edit-toggle.active { background: #000; border-color: #000; color: #fff; }
+.check-item { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 999px !important; box-shadow: none !important; backdrop-filter: none !important; }
+.check-item:nth-child(4n+1) { background: #f4ecd6 !important; border-color: #e8dcc0 !important; }
+.check-item:nth-child(4n+2) { background: #e8d9f0 !important; border-color: #d8c4e6 !important; }
+.check-item:nth-child(4n+3) { background: #d9ecf0 !important; border-color: #c2dde3 !important; }
+.check-item:nth-child(4n+4) { background: #f7f7f5 !important; }
+.check-item.gl, .check-item.gl1, .check-item.gl2, .check-item.gl3, .check-item.gl4, .check-item.gl5, .check-item.gl6,
+.check-item.done.gl, .check-item.done.gl1, .check-item.done.gl2, .check-item.done.gl3, .check-item.done.gl4, .check-item.done.gl5, .check-item.done.gl6,
+.check-item.cared { border-color: #000 !important; box-shadow: none !important; }
+.check-item.done:not(.name-picker-item) { background: #f7f7f5 !important; opacity: 0.75; }
+.check-item.done .item-text, .check-item.done .item-text strong { color: #999 !important; text-shadow: none !important; }
+.check-item .item-text { color: #161616; }
+.check-item .item-text strong { color: #161616; }
+.check-item .cb { border: 2px solid #999; border-radius: 50%; background: #fff; color: transparent !important; }
+.check-item.done .cb { background: #000 !important; border-color: #000 !important; color: #fff !important; }
+.check-item .item-num { color: #999; }
+.check-item .item-text-input { background: #fff; border: 1.5px solid #000; border-radius: 999px; color: #161616; }
+.check-item .lock-btn, .check-item .edit-btn, .check-item .note-btn { color: #666; opacity: 0.7; }
+.check-item .del-btn { color: #e5484d; }
+.check-item .note-btn:hover { color: #000; }
+.check-item.has-note .note-btn { color: #000; }
+.check-item .move-btn { background: #fff; border: 1px solid #e6e6e6; color: #000; border-radius: 999px; }
+.check-item .drag-handle { background: #fff; border: 1px solid #e6e6e6; color: #666; border-radius: 999px; }
+
+/* 備註 */
+.note-area textarea { background: #fff; border: 1.5px solid #e6e6e6; border-radius: 14px; color: #444; }
+.note-area textarea:focus { border-color: #000; color: #161616; }
+.note-close-btn { background: #f7f7f5; color: #666; border-radius: 999px; }
+.note-close-btn:hover { background: #000; color: #fff; }
+.nh-item { border-bottom: 1px solid #e6e6e6; }
+.nh-date { color: #666; }
+.nh-person { color: #7c3aed; }
+.nh-text { color: #555; }
+
+/* 新增列 */
+.add-wrap input { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 999px !important; color: #161616 !important; box-shadow: none !important; }
+.add-wrap input:focus { border-color: #000 !important; box-shadow: none !important; }
+.add-wrap .add-btn { background: #000 !important; border: none !important; border-radius: 999px !important; box-shadow: none !important; }
+
+/* 熱力圖 */
+.heatmap-section { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 16px !important; box-shadow: none !important; }
+.heatmap-section h3 { color: #666; }
+.heatmap .day { background: #e6e6e6; border-radius: 3px; }
+.heatmap .day.l0 { background: #e6e6e6; }
+.heatmap .day.l1 { background: #e8f5d0; }
+.heatmap .day.l2 { background: #b8e986; }
+.heatmap .day.l3 { background: #8bc34a; }
+.heatmap .day.l4 { background: #5a9e2f; }
+.heatmap .day.l5 { background: #000; }
+.heatmap .day.today { outline: 2px solid #000; outline-offset: 1px; }
+.heatmap-legend { color: #888; }
+
+/* 關懷/姓名選取 */
+.care-input { background: #fff; border: 1.5px solid #e6e6e6; border-radius: 999px; color: #161616; }
+.care-input:focus { border-color: #000; }
+.care-toggle { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 999px !important; color: #161616 !important; }
+.care-toggle:hover { border-color: #000; }
+.care-overview { background: #f7f7f5 !important; border: 1.5px solid #e6e6e6 !important; border-radius: 16px !important; }
+.care-overview th { color: #666; border-bottom: 1px solid #e6e6e6; }
+.care-overview td { border-bottom: 1px solid #f0f0f0; color: #444; }
+.care-overview .ov-head { color: #161616; }
+.name-select { background: #fff; border: 1.5px solid #e6e6e6; border-radius: 999px; color: #161616; }
+.name-select:focus { border-color: #000; }
+.item-selected { color: #7c3aed; }
+
+/* 姓名彈窗 */
+.cute-dialog { background: #ffffff !important; border: 1.5px solid #e6e6e6 !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important; }
+.cute-dialog::before, .cute-dialog::after { display: none; }
+.cute-dialog h3 { color: #161616; }
+.cute-dialog .name-item:hover { background: #f7f7f5; }
+.cute-dialog .name-index { background: #e8d9f0; color: #7c3aed; }
+.cute-dialog .name-avatar { background: #000; }
+.cute-dialog .name-text { color: #161616; }
+.cute-dialog .input-wrap input { background: #f7f7f5; border: 1.5px solid #e6e6e6; border-radius: 999px; color: #161616; }
+.cute-dialog .input-wrap input:focus { border-color: #000; }
+.cute-dialog .input-wrap .add-name-btn { background: #000; border-radius: 999px; }
+.cute-dialog .btn-row .close-btn { background: #f7f7f5; color: #161616; border-radius: 999px; }
+.cute-dialog .btn-row .close-btn:hover { background: #e6e6e6; }
+.cute-dialog .btn-row .save-btn { background: #000; border-radius: 999px; }
+
+/* 日曆 */
+.cal-overlay { background: rgba(0,0,0,0.5); }
+.cal-dialog { background: #ffffff !important; border: 1.5px solid #e6e6e6 !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important; }
+.cal-dialog .cal-moy { color: #161616; }
+.cal-dialog .cal-header button { color: #000; }
+.cal-dialog .cal-dow { color: #888; }
+.cal-dialog .cal-day { color: #444; }
+.cal-dialog .cal-day.today { border: 1.5px solid #000; }
+.cal-dialog .cal-day.selected { background: #000; color: #fff; }
+.cal-dialog .cal-close { background: #f7f7f5; color: #666; border-radius: 999px; }
+
+/* 拖曳 */
+.drag-ghost { box-shadow: 0 12px 40px rgba(0,0,0,0.2) !important; }
+.drag-placeholder { border: 3px dashed #000 !important; box-shadow: none !important; opacity: 0.5; }
+.drag-indicator { background: #000; }
+
+/* 載入 */
+.spinner { border: 3px solid #e6e6e6; border-top-color: #000; }
+
+/* 頁尾 */
+.footer-btn { color: #666; }
+.footer-btn:hover { color: #000; }
+
+/* 同步狀態 */
+.status-dot.online { background: #8bc34a; }
+.status-dot.offline { background: #f59e0b; }
+
+/* 捲軸、輸入框通用 */
+input, textarea, select { border-radius: 999px !important; }
+textarea { border-radius: 14px !important; }
+
+/* ══════════ END FIGMA THEME ══════════ */
+
 </style>
 </head>
 <body>

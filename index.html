@@ -403,9 +403,21 @@ textarea { border-radius: 14px !important; }
 <div class="app" id="mainApp" style="display:none">
   <div class="header">
     <h1><span class="status-dot offline" id="statusDot"></span><img src="icon-192-android.png" alt="" style="width:28px;height:28px;border-radius:7px;vertical-align:middle;margin-right:6px;"> <span id="boardName">儀表板</span></h1>
-    <div class="streak-badge" id="streakBadge" style="display:none">
-      <span class="fire">🔥</span><span id="streakCount">0</span>天
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="ppOpenBtn" style="background:linear-gradient(135deg,#a78bfa,#6c5ce7);color:white;border:none;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:20px;box-shadow:0 2px 8px rgba(108,92,231,.3)">🧠 個人平台</button>
+      <div class="streak-badge" id="streakBadge" style="display:none">
+        <span class="fire">🔥</span><span id="streakCount">0</span>天
+      </div>
     </div>
+  </div>
+
+  <!-- 個人平台全螢幕層 -->
+  <div id="ppOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#fff">
+    <div style="position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid #eee">
+      <span style="font-weight:700;color:#333">🧠 個人平台</span>
+      <button id="ppCloseBtn" style="background:#000;color:#fff;border:none;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer">✕ 關閉</button>
+    </div>
+    <iframe src="https://richfly2u.github.io/personal-platform/" style="width:100%;height:calc(100vh - 48px);border:none;display:block"></iframe>
   </div>
 
   <div class="date-nav">
@@ -454,7 +466,6 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="resetBtn">🗑️ 重置今天</button>
     <button class="footer-btn" id="saveTemplateBtn">📋 存為內定</button>
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
-    <button class="footer-btn" id="ppBtn" onclick="window.open('https://richfly2u.github.io/personal-platform/','_blank')">🧠 個人平台</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
 </div>
@@ -1522,6 +1533,22 @@ if (boardKey) {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// 個人平台整合：開關全螢幕 iframe
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn = document.getElementById('ppOpenBtn');
+  const closeBtn = document.getElementById('ppCloseBtn');
+  const overlay = document.getElementById('ppOverlay');
+  const frame = overlay ? overlay.querySelector('iframe') : null;
+
+  if (openBtn) openBtn.addEventListener('click', () => {
+    if (frame) frame.src = frame.src; // 重載最新
+    overlay.style.display = 'block';
+  });
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    overlay.style.display = 'none';
+  });
+});
 </script>
 </body>
 </html>

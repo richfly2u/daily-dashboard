@@ -527,6 +527,7 @@ let itemsTemplate = [];
 // 主控板名稱 — 新開板的用戶會繼承這個板的範本作為起始內定
 const MASTER_BOARD = 'alan';
 const BOARD_DISPLAY = { 'alan': '好習慣' };  // 顯示名稱
+const DISPLAY_TO_KEY = Object.fromEntries(Object.entries(BOARD_DISPLAY).map(([k, v]) => [v, k]));  // 顯示名 → 板名
 const EPOCH = new Date('2025-01-01');
 
 function dk(d) { return d.toISOString().slice(0,10); }
@@ -1466,8 +1467,9 @@ document.getElementById('calGrid').onclick = e => {
 document.getElementById('loginBtn').onclick = () => doLogin();
 document.getElementById('loginKey').onkeydown = e => { if (e.key==='Enter') doLogin(); };
 async function doLogin() {
-  const key = document.getElementById('loginKey').value.trim().toLowerCase();
-  if (!key) return;
+  const input = document.getElementById('loginKey').value.trim().toLowerCase();
+  if (!input) return;
+  const key = DISPLAY_TO_KEY[input] || input;   // 輸入「好習慣」→ 對應 alan 板
   boardKey = key;
   localStorage.setItem('dashboard_key', boardKey);
   document.getElementById('boardName').textContent = (BOARD_DISPLAY[key] || key) + ' 的儀表板';

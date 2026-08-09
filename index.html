@@ -395,7 +395,7 @@ textarea { border-radius: 14px !important; }
   <div style="margin-bottom:16px;"><img src="icon-192-android.png" alt="Android" style="width:72px;height:72px;border-radius:18px;"></div>
   <h2>每日行動儀表板</h2>
   <p>輸入儀表板名稱</p>
-  <input type="text" id="loginKey" placeholder="alan" maxlength="20" autocomplete="off">
+  <input type="text" id="loginKey" placeholder="好習慣" maxlength="20" autocomplete="off">
   <button class="login-btn" id="loginBtn">進入</button>
   <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
 </div>
@@ -526,6 +526,7 @@ let startDate = '';
 let itemsTemplate = [];
 // 主控板名稱 — 新開板的用戶會繼承這個板的範本作為起始內定
 const MASTER_BOARD = 'alan';
+const BOARD_DISPLAY = { 'alan': '好習慣' };  // 顯示名稱
 const EPOCH = new Date('2025-01-01');
 
 function dk(d) { return d.toISOString().slice(0,10); }
@@ -1469,7 +1470,7 @@ async function doLogin() {
   if (!key) return;
   boardKey = key;
   localStorage.setItem('dashboard_key', boardKey);
-  document.getElementById('boardName').textContent = key + ' 的儀表板';
+  document.getElementById('boardName').textContent = (BOARD_DISPLAY[key] || key) + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   await loadDay(boardKey, dk(currentDate));

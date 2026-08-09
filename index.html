@@ -411,12 +411,9 @@ textarea { border-radius: 14px !important; }
     </div>
   </div>
 
-  <!-- 個人平台全螢幕層 -->
+  <!-- 個人平台全螢幕層（無關閉列，個人平台內 📊 儀表板鈕可切回） -->
   <div id="ppOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#fff">
-    <div style="position:sticky;top:0;z-index:10;display:flex;justify-content:flex-end;align-items:center;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid #eee">
-      <button id="ppCloseBtn" style="background:#000;color:#fff;border:none;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer">✕ 關閉</button>
-    </div>
-    <iframe src="https://richfly2u.github.io/personal-platform/" style="width:100%;height:calc(100vh - 48px);border:none;display:block"></iframe>
+    <iframe src="https://richfly2u.github.io/personal-platform/" style="width:100%;height:100%;border:none;display:block"></iframe>
   </div>
 
   <div class="date-nav">
@@ -1539,16 +1536,12 @@ if ('serviceWorker' in navigator) {
 // 個人平台整合：開關全螢幕 iframe
 document.addEventListener('DOMContentLoaded', () => {
   const openBtn = document.getElementById('ppOpenBtn');
-  const closeBtn = document.getElementById('ppCloseBtn');
   const overlay = document.getElementById('ppOverlay');
   const frame = overlay ? overlay.querySelector('iframe') : null;
 
   if (openBtn) openBtn.addEventListener('click', () => {
     if (frame) frame.src = frame.src; // 重載最新
     overlay.style.display = 'block';
-  });
-  if (closeBtn) closeBtn.addEventListener('click', () => {
-    overlay.style.display = 'none';
   });
 });
 </script>

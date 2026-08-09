@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192-android.png">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>🍱 好習慣</title>
+    <title>🍱 養成好習慣</title>
     <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -393,9 +393,9 @@ textarea { border-radius: 14px !important; }
 
 <div class="login-screen" id="loginScreen">
   <div style="margin-bottom:16px;"><img src="icon-192-android.png" alt="Android" style="width:72px;height:72px;border-radius:18px;"></div>
-  <h2>好習慣</h2>
+  <h2>養成好習慣</h2>
   <p>輸入儀表板名稱</p>
-  <input type="text" id="loginKey" placeholder="好習慣" maxlength="20" autocomplete="off">
+  <input type="text" id="loginKey" placeholder="養成好習慣" maxlength="20" autocomplete="off">
   <button class="login-btn" id="loginBtn">進入</button>
   <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
 </div>
@@ -523,8 +523,8 @@ let startDate = '';
 let itemsTemplate = [];
 // 主控板名稱 — 新開板的用戶會繼承這個板的範本作為起始內定
 const MASTER_BOARD = 'alan';
-const BOARD_DISPLAY = { 'alan': '好習慣' };  // 顯示名稱
-const DISPLAY_TO_KEY = Object.fromEntries(Object.entries(BOARD_DISPLAY).map(([k, v]) => [v, k]));  // 顯示名 → 板名
+const BOARD_DISPLAY = { 'alan': '養成好習慣' };  // 顯示名稱
+const DISPLAY_TO_KEY = Object.assign(Object.fromEntries(Object.entries(BOARD_DISPLAY).map(([k, v]) => [v, k])), { '好習慣': 'alan' });  // 顯示名 → 板名
 const EPOCH = new Date('2025-01-01');
 
 function dk(d) { return d.toISOString().slice(0,10); }

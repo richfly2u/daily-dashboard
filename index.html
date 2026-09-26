@@ -180,7 +180,7 @@
   .check-item .move-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); color: #60a5fa; font-size: 14px; cursor: pointer; padding: 6px 5px; border-radius: 6px; flex-shrink: 0; display: none; line-height: 1; min-width: 30px; text-align: center; }
   .edit-mode .move-btn { display: inline-block !important; opacity: 0.85; }
   .edit-mode .move-btn:active { opacity: 1; background: rgba(96,165,250,0.25); }
-  .check-item .drag-handle { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #888; font-size: 20px; cursor: grab; padding: 6px 5px; border-radius: 8px; flex-shrink: 0; display: none; touch-action: none; line-height: 1; min-width: 30px; text-align: center; }
+  .check-item .drag-handle { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #888; font-size: 22px; cursor: grab; padding: 8px 7px; border-radius: 8px; flex-shrink: 0; display: none; touch-action: none; line-height: 1; min-width: 38px; text-align: center; }
   .edit-mode .drag-handle { display: inline-block !important; color: #a78bfa; }
   .edit-mode .drag-handle:active { cursor: grabbing; background: rgba(168,85,247,0.2); border-color: #a78bfa; }
   .drag-ghost { position: fixed; pointer-events: none; z-index: 9999; opacity: 0.9; transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; transition: none; max-width: calc(720px - 32px); }
@@ -1098,14 +1098,25 @@ function setupDragHandles() {
   if (!list) return;
   list.removeEventListener('touchstart', _delegateDragStart);
   list.removeEventListener('mousedown', _delegateDragStart);
-  list.addEventListener('touchstart', _delegateDragStart, { passive: false });
-  list.addEventListener('mousedown', _delegateDragStart);
+  list.removeEventListener('pointerdown', _delegateDragStart);
+  // 用 Pointer Events：滑鼠與觸控同一套，手機才能真正拖
+  list.addEventListener('pointerdown', _delegateDragStart);
 }
 function _delegateDragStart(e) {
   // Find if the touch/click was on a drag-handle
   const target = e.target.closest('.drag-handle');
   if (!target) return;
   _dragStart(e, target);
+}
+function _scrollParent(el) {
+  // 找可捲動的祖先（自動捲動要知道捲誰）
+  let p = el && el.parentElement;
+  while (p && p !== document.body) {
+    const st = getComputedStyle(p);
+    if (/(auto|scroll)/.test(st.overflowY) && p.scrollHeight > p.clientHeight + 4) return p;
+    p = p.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
 }
 function _dragStart(e, handle) {
   if (!editMode) return;
@@ -1114,108 +1125,102 @@ function _dragStart(e, handle) {
     const old = _dragData;
     if (old.ghost && old.ghost.parentNode) old.ghost.remove();
     if (old.item) old.item.classList.remove('drag-placeholder');
-    if (old.indicator && old.indicator.parentNode) old.indicator.remove();
-    if (old.isTouch) {
-      document.removeEventListener('touchmove', _dragMove);
-      document.removeEventListener('touchend', _dragEnd);
-      document.removeEventListener('touchcancel', _dragEnd);
-    } else {
-      document.removeEventListener('mousemove', _dragMove);
-      document.removeEventListener('mouseup', _dragEnd);
-    }
+    if (old.autoTimer) clearInterval(old.autoTimer);
+    document.removeEventListener('pointermove', _dragMove);
+    document.removeEventListener('pointerup', _dragEnd);
+    document.removeEventListener('pointercancel', _dragEnd);
     _dragData = null;
   }
   const item = handle.closest('.check-item');
   const list = document.getElementById('checklist');
   if (!item || !list) return;
-  // Only start if we're actually dragging the handle, not just tapping
-  const isTouch = e.type === 'touchstart';
-  const startY = isTouch ? e.touches[0].clientY : e.clientY;
+  const startX = e.clientX, startY = e.clientY;
   const allItems = [...list.querySelectorAll('.check-item')];
   const idx = allItems.indexOf(item);
   if (idx < 0) return;
   const rect = item.getBoundingClientRect();
-  // Create ghost
-  const ghost = item.cloneNode(true);
-  ghost.className = item.className + ' drag-ghost';
+  _dragData = {
+    idx, item, list, ghost: null, autoTimer: null,
+    active: false, isTouch: e.pointerType !== 'mouse',
+    startX, startY, lastY: startY, h: rect.height,
+    offsetY: startY - rect.top,
+    scroller: _scrollParent(list),
+    baseScrollTop: _scrollParent(list).scrollTop || 0
+  };
+  document.addEventListener('pointermove', _dragMove, { passive: false });
+  document.addEventListener('pointerup', _dragEnd);
+  document.addEventListener('pointercancel', _dragEnd);
+  e.preventDefault();
+}
+// 真的開始拖才建立 ghost／預留位（避免只是點一下也跳動）
+function _dragActivate() {
+  const d = _dragData;
+  if (!d || d.active) return;
+  d.active = true;
+  const rect = d.item.getBoundingClientRect();
+  const ghost = d.item.cloneNode(true);
+  ghost.className = d.item.className + ' drag-ghost';
   ghost.style.width = rect.width + 'px';
   ghost.style.left = rect.left + 'px';
   ghost.style.top = rect.top + 'px';
   document.body.appendChild(ghost);
-  item.classList.add('drag-placeholder');
-  // Create insertion indicator
-  const indicator = document.createElement('div');
-  indicator.className = 'drag-indicator';
-  indicator.style.display = 'none';
-  list.insertBefore(indicator, item);
-  _dragData = {
-    idx, item, ghost, list, indicator, isTouch,
-    offsetY: startY - rect.top
-  };
-  // Attach move/end listeners
-  if (isTouch) {
-    document.addEventListener('touchmove', _dragMove, { passive: false });
-    document.addEventListener('touchend', _dragEnd);
-    document.addEventListener('touchcancel', _dragEnd);
-  } else {
-    document.addEventListener('mousemove', _dragMove);
-    document.addEventListener('mouseup', _dragEnd);
-  }
-  e.preventDefault();
+  d.ghost = ghost;
+  d.item.classList.add('drag-placeholder');
+  if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }   // 手機震一下＝已抓住
+  d.autoTimer = setInterval(_dragAutoScroll, 60);
 }
 function _dragMove(e) {
   if (!_dragData) return;
   e.preventDefault();
   const d = _dragData;
-  const clientY = d.isTouch ? e.touches[0].clientY : e.clientY;
-  d.ghost.style.top = (clientY - d.offsetY) + 'px';
-  // Find insertion index by finger position relative to item gaps
-  const ph = d.list.querySelector('.drag-placeholder');
-  if (!ph) return;
-  const items = [...d.list.querySelectorAll('.check-item')];
-  let insertIdx = items.length;
-  for (let i = 0; i < items.length; i++) {
-    const el = items[i];
-    if (el === ph) continue;
-    const rect = el.getBoundingClientRect();
-    // Finger in top 40% of item → insert before; bottom 60% → after
-    if (clientY < rect.top + rect.height * 0.4) {
-      insertIdx = i;
-      break;
-    }
+  d.lastY = e.clientY;
+  // 拖曳門檻：手指／滑鼠要移動超過 6px 才算拖曳（否則只是點一下）
+  if (!d.active) {
+    if (Math.abs(e.clientY - d.startY) < 6 && Math.abs(e.clientX - d.startX) < 6) return;
+    _dragActivate();
   }
-  // Move placeholder to target position (with threshold to prevent jitter)
-  const target = items[insertIdx];
-  if (target && ph !== target) {
-    const curIdx = items.indexOf(ph);
-    if (Math.abs(insertIdx - curIdx) <= 1) {
-      // Adjacent move: only move if finger clearly crossed the boundary
-      const tRect = target.getBoundingClientRect();
-      const boundary = tRect.top + tRect.height * 0.4;
-      if ((insertIdx < curIdx && clientY > boundary) ||
-          (insertIdx > curIdx && clientY < boundary)) return;
-    }
-    if (insertIdx < curIdx) {
-      d.list.insertBefore(ph, target);
-    } else {
-      d.list.insertBefore(ph, target.nextSibling);
-    }
-  } else if (!target && ph.nextSibling) {
+  if (d.ghost) d.ghost.style.top = (e.clientY - d.offsetY) + 'px';
+  _dragReorder();
+}
+// 依「被拖項目的中心」與其他項目的中線比較 → 明確、不抖動
+function _dragReorder() {
+  const d = _dragData;
+  if (!d || !d.active) return;
+  const ph = d.item;
+  const others = [...d.list.querySelectorAll('.check-item')].filter(el => el !== ph);
+  const scrolled = (d.scroller.scrollTop || 0) - d.baseScrollTop;
+  const centerY = d.lastY - d.offsetY + d.h / 2 - scrolled;   // 捲動後 ghost 相對位置不變 → 用捲動量補回
+  let target = null;
+  for (const el of others) {
+    const r = el.getBoundingClientRect();
+    if (centerY < r.top + r.height / 2) { target = el; break; }
+  }
+  if (target) {
+    if (ph.nextSibling !== target) d.list.insertBefore(ph, target);
+  } else if (d.list.lastElementChild !== ph) {
     d.list.appendChild(ph);
   }
+}
+function _dragAutoScroll() {
+  const d = _dragData;
+  if (!d || !d.active) return;
+  const EDGE = 100, SPEED = 12;
+  const rect = d.scroller === document.scrollingElement ? { top: 0, bottom: window.innerHeight } : d.scroller.getBoundingClientRect();
+  if (d.lastY < rect.top + EDGE) d.scroller.scrollTop -= SPEED;
+  else if (d.lastY > rect.bottom - EDGE) d.scroller.scrollTop += SPEED;
+  else return;
+  _dragReorder();
+  if (d.ghost) d.ghost.style.top = (d.lastY - d.offsetY - ((d.scroller.scrollTop || 0) - d.baseScrollTop)) + 'px';
 }
 function _dragEnd(e) {
   if (!_dragData) return;
   const d = _dragData;
-  // Detach listeners first
-  if (d.isTouch) {
-    document.removeEventListener('touchmove', _dragMove);
-    document.removeEventListener('touchend', _dragEnd);
-    document.removeEventListener('touchcancel', _dragEnd);
-  } else {
-    document.removeEventListener('mousemove', _dragMove);
-    document.removeEventListener('mouseup', _dragEnd);
-  }
+  document.removeEventListener('pointermove', _dragMove);
+  document.removeEventListener('pointerup', _dragEnd);
+  document.removeEventListener('pointercancel', _dragEnd);
+  if (d.autoTimer) { clearInterval(d.autoTimer); d.autoTimer = null; }
+  // 只是點一下（沒超過門檻）→ 不算拖曳，畫面完全不動
+  if (!d.active) { _dragData = null; return; }
   // Clean up DOM artifacts
   if (d.ghost && d.ghost.parentNode) d.ghost.remove();
   if (d.item) d.item.classList.remove('drag-placeholder');

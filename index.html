@@ -1586,14 +1586,14 @@ onAuthStateChanged(auth, user => {
     document.getElementById('loginScreen').style.display = 'flex';
   }
 });
-// 保險：8 秒內都沒收到登入狀態（SDK 卡住／離線）就直接顯示登入畫面，不要一直卡在載入中
+// 保險：15 秒內都沒收到登入狀態（SDK 卡住／離線）就直接顯示登入畫面，不要一直卡在載入中
 setTimeout(() => {
   if (appStarted) return;
   const boot = document.getElementById('bootSplash');
   if (boot) boot.style.display = 'none';
   const ls = document.getElementById('loginScreen');
   if (ls) ls.style.display = 'flex';
-}, 8000);
+}, 15000);
 </script>
 <script>
 if ('serviceWorker' in navigator) {

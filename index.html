@@ -176,7 +176,7 @@
   .check-item .del-btn { display: none; }
   .edit-mode .edit-btn, .edit-mode .del-btn, .edit-mode .move-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
-  .edit-mode .del-btn { opacity: 0.8 !important; }
+  .edit-mode .del-btn { opacity: 0.9 !important; min-width: 40px; min-height: 40px; font-size: 20px; padding: 6px; }
   .check-item .move-btn { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); color: #60a5fa; font-size: 14px; cursor: pointer; padding: 6px 5px; border-radius: 6px; flex-shrink: 0; display: none; line-height: 1; min-width: 30px; text-align: center; }
   .edit-mode .move-btn { display: inline-block !important; opacity: 0.85; }
   .edit-mode .move-btn:active { opacity: 1; background: rgba(96,165,250,0.25); }
@@ -474,7 +474,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-09-26e（拖拉用 ⠿ 把手，需先按 ✏️ 編輯項目）</div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-09-26f（拖拉用 ⠿ 把手，需先按 ✏️ 編輯項目）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -1076,12 +1076,12 @@ let cacheVersion = 0;
 function bumpCache() { cacheVersion++; }
 function del(i) {
   const d=cache[dk(currentDate)];
-  if(!d||!d.items[i]) return;
+  if(!d||!d.items||!d.items[i]) return;
   d.items.splice(i,1);
   bumpCache();
   // 🔴 一定要重新渲染：先前只把 DOM 節點移除，其他項目的刪除/勾選/上下移按鈕索引會全部過期
-  //    → 再刪一筆就會刪到別筆（症狀：刪掉的重新整理又出現）
-  render();
+  //    → 再刪一筆就會刪到別筆、甚至完全沒反應（症狀：刪不掉／刪掉的重新整理又出現）
+  try { render(); } catch(err) {}   // 就算畫面重建出錯，也不能擋掉下面的存檔
   scheduleSave();
 }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
@@ -1600,6 +1600,27 @@ setTimeout(() => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// 強制更新：清掉 Service Worker 與所有快取後重載（手機拿到舊版時用這個）
+document.addEventListener('DOMContentLoaded', () => {
+  const fu = document.getElementById('forceUpdate');
+  if (!fu) return;
+  fu.addEventListener('click', async e => {
+    e.preventDefault();
+    fu.textContent = '更新中…';
+    try {
+      if ('serviceWorker' in navigator) {
+        const rs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(rs.map(r => r.unregister()));
+      }
+      if (window.caches) {
+        const ks = await caches.keys();
+        await Promise.all(ks.map(k => caches.delete(k)));
+      }
+    } catch (err) {}
+    location.replace(location.pathname + '?u=' + Date.now());
+  });
+});
 
 // 個人平台整合：開關全螢幕 iframe
 document.addEventListener('DOMContentLoaded', () => {

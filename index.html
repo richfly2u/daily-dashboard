@@ -391,7 +391,7 @@ textarea { border-radius: 14px !important; }
 </head>
 <body>
 
-<div class="login-screen" id="loginScreen">
+<div class="login-screen" id="loginScreen" style="display:none">
   <div style="margin-bottom:16px;"><img src="icon-192-android.png" alt="Android" style="width:72px;height:72px;border-radius:18px;"></div>
   <h2>養成好習慣</h2>
   <p>要先用 Google 登入（只有本人看得到）</p>
@@ -401,6 +401,13 @@ textarea { border-radius: 14px !important; }
     <input type="text" id="loginKey" placeholder="養成好習慣" maxlength="20" autocomplete="off">
     <button class="login-btn" id="loginBtn">進入</button>
   </div>
+</div>
+
+<!-- 開場：先顯示載入中，等確認登入狀態才切換（避免登入畫面閃一下又自動進去） -->
+<div class="login-screen" id="bootSplash">
+  <div style="margin-bottom:16px;"><img src="icon-192-android.png" alt="Android" style="width:72px;height:72px;border-radius:18px;"></div>
+  <h2>養成好習慣</h2>
+  <p style="margin-bottom:0">載入中…</p>
 </div>
 
 <div class="app" id="mainApp" style="display:none">
@@ -1537,6 +1544,8 @@ let appStarted = false;
 async function enterApp() {
   if (appStarted) return;
   appStarted = true;
+  const boot = document.getElementById('bootSplash');
+  if (boot) boot.style.display = 'none';
   const key = boardKey || MASTER_BOARD;
   boardKey = key;
   localStorage.setItem('dashboard_key', key);
@@ -1571,10 +1580,20 @@ onAuthStateChanged(auth, user => {
     enterApp();
   } else {
     appStarted = false;
+    const boot = document.getElementById('bootSplash');
+    if (boot) boot.style.display = 'none';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
   }
 });
+// 保險：8 秒內都沒收到登入狀態（SDK 卡住／離線）就直接顯示登入畫面，不要一直卡在載入中
+setTimeout(() => {
+  if (appStarted) return;
+  const boot = document.getElementById('bootSplash');
+  if (boot) boot.style.display = 'none';
+  const ls = document.getElementById('loginScreen');
+  if (ls) ls.style.display = 'flex';
+}, 8000);
 </script>
 <script>
 if ('serviceWorker' in navigator) {

@@ -474,7 +474,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-09-26f（拖拉用 ⠿ 把手，需先按 ✏️ 編輯項目）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-09-26g（刪除立刻寫入，修正刪掉又重新整理又跑回來）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -524,6 +524,11 @@ let boardKey = localStorage.getItem('dashboard_key') || '';
 let cache = {};
 let currentDate = new Date();
 let saveTimer = null;
+// 🔴 dirtyToday：本機是否有「還沒寫進 Firestore」的變更。
+//    沒有的話，即時同步就該直接採用伺服器版本；否則另一個還開著的分頁／手機
+//    會拿手上的舊清單整份寫回去，把別人剛刪掉的項目復活（症狀：刪了又恢復）。
+let dirtyToday = false;
+let changeGen = 0;   // 本機變更序號：寫入完成時序號若沒變，才算真的乾淨
 let nameList = [...DEFAULT_NAMES];
 let editMode = false;
 let careDates = {};
@@ -628,9 +633,11 @@ async function loadDay(key, dateStr) {
       const np = DEFAULTS.find(i => i.type === 'name-picker');
       if (np) cache[dateStr].items.push({...np, done:false, selected:'', notes:''});
     }
-    // Force name-picker selected to empty for today so rotation always wins
-    const npItem = cache[dateStr].items.find(i => i.type === 'name-picker');
-    if (npItem && dateStr === today()) { npItem.selected = ''; npItem.done = false; }
+    // 🔴 原本這裡會把今天的 name-picker 強制清空 (selected='' / done=false)，
+    //    使得每次載入都「有變動」→ 觸發一次存檔 → 剛開 App 就把手上的清單整份寫回 Firestore，
+    //    正好蓋掉另一台裝置剛刪掉的項目（症狀：刪了又恢復）。
+    //    輪替本來就會在 ensureTodayNamePickerSelected() 覆蓋 selected，這裡不需要再插一腳；
+    //    「換人時把愛心清掉」也改到那裡，只在人真的換了才動作。
   } else {
     cache[dateStr] = { items: getTemplate().map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
     // ✅ 確保 name-picker 項目永遠存在
@@ -647,6 +654,7 @@ async function loadDay(key, dateStr) {
 async function saveCurrentDay() {
   const day = cache[dk(currentDate)];
   if (!day) return;
+  const gen = changeGen;   // 這次要寫入的版本
   const ref = doc(db, "dashboard", boardKey);
   const update = {};
   update[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
@@ -660,12 +668,23 @@ async function saveCurrentDay() {
   try {
     await setDoc(ref, update, { merge: true });
     setStatus(true);
+    if (gen === changeGen) dirtyToday = false;   // 寫入期間沒有新變更 → 本機已與伺服器一致
   } catch(e) { setStatus(false); }
 }
 
 function scheduleSave() {
+  changeGen++;
+  dirtyToday = true;
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveCurrentDay, 500);
+  saveTimer = setTimeout(() => { saveTimer = null; saveCurrentDay(); }, 500);
+}
+
+// 不等 debounce，立刻寫入（刪除這種不可逆的操作必須馬上去）
+function flushSave() {
+  changeGen++;
+  dirtyToday = true;
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  return saveCurrentDay();
 }
 
 async function preloadRecent(key) {
@@ -675,7 +694,10 @@ async function preloadRecent(key) {
   careCount = data._careCount || 1;
   careInterval = data._careInterval || 7;
   careDates = data._careDates || {};
-  startDate = data._startDate || '';
+  // 🔴 不可寫成 data._startDate || ''：loadDay 已經把「沒有 _startDate」補成今天，
+  //    這裡若清成空字串，getCareSuggestions() 會算出 NaN → 對象變成 undefined，
+  //    接著 ensureTodayNamePickerSelected() 會把 'undefined' 寫進今天的 name-picker。
+  startDate = data._startDate || startDate || today();
   // 載入全域範本
   if (data._itemsTemplate && data._itemsTemplate.length) {
     itemsTemplate = data._itemsTemplate.map(i => ({text:i.text,type:i.type||"text",locked:i.locked!==false}));
@@ -939,20 +961,24 @@ function startRealtimeSync() {
         if (idx !== undefined) window._editingText[idx] = el.value;
       });
 
-      // 當日資料由使用者本機主導 — 不從伺服器覆蓋（避免 race condition）
-      const localToday = cache[todayKey];
+      // 🔴 今天的資料怎麼取捨：
+      //    - 本機有「還沒寫入」的變更 (dirtyToday) → 保留本機（等這次寫入送出去）
+      //    - 本機沒有未寫入的變更 → 採用伺服器版本
+      //    舊版一律保留本機，導致另一個還開著的分頁永遠停在舊清單，
+      //    它一重繪就把已刪除的項目整份寫回伺服器（兩邊互蓋＝刪了又恢復）。
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;
         if (dd && dd.items) {
           const mapped = dd.items.map(i => typeof i === 'string'
             ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
             : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
-          // For today, clear name-picker selected so daily rotation always wins
-          if (ds === todayKey) continue; // 當日快取不從伺服器蓋掉
+          if (ds === todayKey) {
+            if (!dirtyToday) cache[todayKey] = { items: mapped };
+            continue;
+          }
           cache[ds] = { items: mapped };
         }
       }
-      if (localToday) cache[todayKey] = localToday; // 還原本機當日資料
       if (!cache[todayKey]) {
         for (let i = 0; i < 90; i++) {
           const d3 = new Date(); d3.setDate(d3.getDate()-i);
@@ -986,12 +1012,18 @@ function ensureTodayNamePickerSelected(dateStr) {
   const np = day.items.find(i => i.type === 'name-picker');
   if (!np) return;
   const suggestions = getCareSuggestions();
-  console.log('DEBUG rotation v3 np.selected="' + np.selected + '" suggestions=' + JSON.stringify(suggestions) + ' epochDays=' + getDateDiffDays() + ' idx=' + (getDateDiffDays() % nameList.length) + ' nameListLen=' + nameList.length + ' nameList[0]=' + nameList[0]);
-  if (suggestions.length) {
-    np.selected = suggestions.join(',');
-    updateCareDates(np.selected);
-    scheduleSave();
-  }
+  if (!suggestions.length) return;
+  const sel = suggestions.join(',');
+  let changed = false;
+  // 今天的對象換人了 → 之前那個「已關心」的愛心不該跟著留著（避免假的已關心狀態）
+  if (np.selected !== sel) { np.selected = sel; np.done = false; changed = true; }
+  // 🔴 原本這裡每次 render 都呼叫 scheduleSave()：等於「只要畫面重繪就把整天的 items 寫回去」，
+  //    另一個實例收到即時同步→重繪→又寫回舊清單，兩邊互蓋，刪掉的項目就會一直被復活。
+  //    改成只有「真的變動」才存檔（np.selected 或 careDates 有變）。
+  const careBefore = JSON.stringify(careDates);
+  updateCareDates(sel);
+  if (JSON.stringify(careDates) !== careBefore) changed = true;
+  if (changed) scheduleSave();
 }
 
 function getDateDiffDays() {
@@ -1012,8 +1044,11 @@ function getCareSuggestions() {
   const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = Math.floor((nowUTC - refUTC) / 86400000);
   const idx = ((diff % nameList.length) + nameList.length) % nameList.length;
-  console.log('rotation: startDate=' + startDate + ' base=' + base + ' diff=' + diff + ' idx=' + idx + ' person=' + nameList[idx]);
-  return [nameList[idx]];
+  // 🔴 diff 可能是 NaN（startDate 不是有效日期）→ idx=NaN → nameList[NaN]=undefined。
+  //    沒有算出人就不要回傳，否則 ensureTodayNamePickerSelected() 會把 'undefined' 寫進資料。
+  const person = nameList[idx];
+  if (!person) return [];
+  return [person];
 }
 function getTodayPerson() {
   const suggestions = getCareSuggestions();
@@ -1082,7 +1117,9 @@ function del(i) {
   // 🔴 一定要重新渲染：先前只把 DOM 節點移除，其他項目的刪除/勾選/上下移按鈕索引會全部過期
   //    → 再刪一筆就會刪到別筆、甚至完全沒反應（症狀：刪不掉／刪掉的重新整理又出現）
   try { render(); } catch(err) {}   // 就算畫面重建出錯，也不能擋掉下面的存檔
-  scheduleSave();
+  // 🔴 刪除要「立刻」寫入，不能等 500ms 的 debounce：
+  //    使用者刪完馬上重新整理／App 被系統回收時，延遲中的存檔會直接消失 → 重整就看到項目回來
+  flushSave();
 }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }
 function moveItem(i, dir) {
@@ -1472,7 +1509,7 @@ document.getElementById('calGrid').onclick = e => {
   if (!day) return;
   if (!e.target.dataset.selectable) return;
   document.getElementById('calOverlay').classList.remove('open');
-  saveCurrentDay();
+  if (dirtyToday) saveCurrentDay();
   currentDate.setFullYear(calYear, calMonth, parseInt(day));
   render();
 };
@@ -1494,8 +1531,9 @@ async function doLogin() {
   startRealtimeSync();
 }
 
-document.getElementById('prevDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
-document.getElementById('nextDay').onclick = () => { saveCurrentDay(); currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
+// 只有「本機真的有未寫入的變更」才需要存；沒有的話寫入只是把舊清單再送一次（會蓋掉別人的刪除）
+document.getElementById('prevDay').onclick = () => { if (dirtyToday) saveCurrentDay(); currentDate.setDate(currentDate.getDate()-1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
+document.getElementById('nextDay').onclick = () => { if (dirtyToday) saveCurrentDay(); currentDate.setDate(currentDate.getDate()+1); const ds=dk(currentDate); if(!cache[ds]){cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))};} render(); };
 document.getElementById('todayBtn').onclick = () => { currentDate=new Date(); render(); };
 document.getElementById('addBtn').onclick = () => { const i=document.getElementById('newItemInput'); addItem(i.value); i.value=''; };
 document.getElementById('newItemInput').onkeydown = e => { if (e.key==='Enter') { addItem(e.target.value); e.target.value=''; } };
@@ -1526,14 +1564,15 @@ document.getElementById('editToggle').onclick = () => {
 document.getElementById('resetBtn').onclick = () => {
   if (!confirm('重置今天的資料？')) return;
   const ds=dk(currentDate); cache[ds]={items:getTemplate().map(i=>({...i,done:false,selected:i.selected||"",notes:""}))}; render();
-  if (boardKey) saveCurrentDay();
+  if (boardKey) flushSave();
 };
 document.getElementById('saveTemplateBtn').onclick = () => {
   saveTemplate();
   alert('✅ 已將目前項目存為內定範本\n新日期會以此為準，其他人開新板也會繼承。');
 };
 document.getElementById('logoutBtn').onclick = () => { signOut(auth).catch(() => {}); localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
-document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveCurrentDay(); });
+// 切到背景時把「還沒寫入的變更」補寫；沒有變更就不要寫（否則只是拿舊清單去蓋伺服器）
+document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey && dirtyToday) saveCurrentDay(); });
 
 // === 登入（Google）：dashboard 只有本人 uid 能讀寫（firestore 規則限制）===
 const auth = getAuth(app);

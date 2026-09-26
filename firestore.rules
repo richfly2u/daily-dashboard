@@ -27,11 +27,12 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
     }
     match /dashboard/{document} {
-      // Anyone can read/write a dashboard doc by name (no auth-based access control)
-      // This is intentional for shared family/team dashboards.
-      // To restrict: add request.auth != null and a UID check.
-      allow read: if true;
-      allow write: if true
+      // 只有本人（Google 登入、uid 相符）可讀寫。
+      // 2026-09-26 前願要求：原設計是「知道板名就能讀寫」，但板名寫在公開程式碼裡，
+      // 等於全世界都能讀到習慣項目內容 → 改成要登入。
+      // uid = alansnoopy@gmail.com（Google 登入）
+      allow read: if request.auth != null && request.auth.uid == '6VHqq8m7odWTcnwfetkOvjgVhp83';
+      allow write: if request.auth != null && request.auth.uid == '6VHqq8m7odWTcnwfetkOvjgVhp83'
         // Protect _startDate from being overwritten once set
         && (!request.resource.data.keys().hasAny(['_startDate'])
             || !resource.data.keys().hasAny(['_startDate'])

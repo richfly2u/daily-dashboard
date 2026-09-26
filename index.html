@@ -394,10 +394,13 @@ textarea { border-radius: 14px !important; }
 <div class="login-screen" id="loginScreen">
   <div style="margin-bottom:16px;"><img src="icon-192-android.png" alt="Android" style="width:72px;height:72px;border-radius:18px;"></div>
   <h2>養成好習慣</h2>
-  <p>輸入儀表板名稱</p>
-  <input type="text" id="loginKey" placeholder="養成好習慣" maxlength="20" autocomplete="off">
-  <button class="login-btn" id="loginBtn">進入</button>
-  <p class="hint">💡 不同裝置用同一個名稱就會自動同步</p>
+  <p>要先用 Google 登入（只有本人看得到）</p>
+  <button class="login-btn" id="loginGoogleBtn">🔑 用 Google 登入</button>
+  <p class="hint" id="loginHint">登入後即載入你的習慣儀表板</p>
+  <div id="loginKeyBox" style="display:none">
+    <input type="text" id="loginKey" placeholder="養成好習慣" maxlength="20" autocomplete="off">
+    <button class="login-btn" id="loginBtn">進入</button>
+  </div>
 </div>
 
 <div class="app" id="mainApp" style="display:none">
@@ -481,9 +484,10 @@ textarea { border-radius: 14px !important; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCRazQsleeT4H4Nt6VrqI1KGlfVenc",
+  apiKey: "AIzaSyCRazQsleeTILp7VO5zYbeiy9dtOxrVenc",
   authDomain: "bentodish-alan.firebaseapp.com",
   projectId: "bentodish-alan",
   storageBucket: "bentodish-alan.firebasestorage.app",
@@ -1515,18 +1519,57 @@ document.getElementById('saveTemplateBtn').onclick = () => {
   saveTemplate();
   alert('✅ 已將目前項目存為內定範本\n新日期會以此為準，其他人開新板也會繼承。');
 };
-document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
+document.getElementById('logoutBtn').onclick = () => { signOut(auth).catch(() => {}); localStorage.removeItem('dashboard_key'); boardKey=''; document.getElementById('mainApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginKey').value=''; };
 document.addEventListener('visibilitychange', () => { if (document.hidden && boardKey) saveCurrentDay(); });
 
-// Auto-login
-if (boardKey) {
-  document.getElementById('boardName').textContent = boardKey + ' 的儀表板';
+// === 登入（Google）：dashboard 只有本人 uid 能讀寫（firestore 規則限制）===
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const POPUP_FALLBACK = ['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request',
+  'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/popup-timeout'];
+let appStarted = false;
+
+async function enterApp() {
+  if (appStarted) return;
+  appStarted = true;
+  const key = boardKey || MASTER_BOARD;
+  boardKey = key;
+  localStorage.setItem('dashboard_key', key);
+  document.getElementById('boardName').textContent = (BOARD_DISPLAY[key] || key) + ' 的儀表板';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
-  loadDay(boardKey, dk(currentDate));
+  await loadDay(boardKey, dk(currentDate));
   preloadRecent(boardKey);
   startRealtimeSync();
 }
+
+document.getElementById('loginGoogleBtn').onclick = async () => {
+  const hint = document.getElementById('loginHint');
+  hint.textContent = '登入中…';
+  try {
+    await signInWithPopup(auth, googleProvider);
+    hint.textContent = '登入後即載入你的習慣儀表板';
+    return;
+  } catch (e) {
+    const c = (e && e.code) || String(e);
+    if (POPUP_FALLBACK.includes(c)) {
+      try { await signInWithRedirect(auth, googleProvider); return; } catch (e2) { alert('登入失敗：' + ((e2 && e2.code) || e2)); }
+    }
+    alert('登入失敗：' + c);
+  }
+  hint.textContent = '登入後即載入你的習慣儀表板';
+};
+
+getRedirectResult(auth).catch(() => {});
+onAuthStateChanged(auth, user => {
+  if (user) {
+    enterApp();
+  } else {
+    appStarted = false;
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+});
 </script>
 <script>
 if ('serviceWorker' in navigator) {

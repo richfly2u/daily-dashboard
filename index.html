@@ -614,26 +614,13 @@ async function loadDay(key, dateStr) {
     let migrated = dayData.items.map(i => typeof i === 'string'
       ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
       : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
-    // Update text/type from defaults without appending deleted items
-    DEFAULTS.forEach((def, j) => {
-      if (j >= migrated.length) return;
-      if (def.type === 'name-picker' && migrated[j].type !== 'name-picker') {
-        migrated[j].type = 'name-picker';
-        migrated[j].selected = migrated[j].selected || '';
-        migrated[j].text = def.text; // Update text when converting to name-picker
-      }
-      // Reverse: if DEFAULTS says text but stored is name-picker (item moved), downgrade
-      if (def.type === 'text' && migrated[j].type === 'name-picker') {
-        migrated[j].type = 'text';
-        delete migrated[j].selected;
-        migrated[j].text = def.text; // Update text when converting to text
-      }
-      // Sync name-picker text with defaults (label always matches)
-      if (def.type === 'name-picker' && migrated[j].type === 'name-picker' && migrated[j].text !== def.text) {
-        migrated[j].text = def.text;
-      }
-      // Set default text only if empty (user can customize)
-      if (!migrated[j].text && migrated[j].type === def.type) migrated[j].text = def.text;
+    // 🔴 絕對不要用「索引」去比對 DEFAULTS：使用者刪掉/新增項目後清單長度就和 DEFAULTS 不同，
+    //    按索引同步會把項目改名、改型別，甚至憑空長出項目（舊症狀：刪掉的東西重新整理又出現）
+    //    改為：名稱題的標題固定用預設字；文字空白的項目給一個安全預設值，其餘一律尊重使用者資料
+    const _npDef = DEFAULTS.find(i => i.type === 'name-picker');
+    migrated.forEach(it => {
+      if (it.type === 'name-picker' && _npDef) { it.text = _npDef.text; return; }
+      if (!it.text || !String(it.text).trim()) it.text = '(未命名)';
     });
     cache[dateStr] = { items: migrated };
     // ✅ 確保 name-picker 項目永遠存在（即使 Firestore 沒有）
@@ -862,7 +849,15 @@ function render() {
       inp.onblur = save;
       inp.onkeydown = e2 => { if (e2.key==='Enter') { e2.preventDefault(); inp.blur(); } };
     };
-    div.querySelector('.del-btn').onclick = e => { e.stopPropagation(); if (confirm(`刪除「${text}」？`)) del(i, div); };
+    div.querySelector('.del-btn').onclick = e => {
+      e.stopPropagation();
+      if (!confirm(`刪除「${text}」？`)) return;
+      // 🔴 不能用 render 當下捕捉的 i：前面有項目被刪掉過，i 就過期了 → 會刪到別筆（重整就看到它回來）
+      //    一律用「這一刻 DOM 上的位置」當索引
+      const _list = document.getElementById('checklist');
+      const _cur = _list ? [..._list.querySelectorAll('.check-item')].indexOf(div) : i;
+      del(_cur >= 0 ? _cur : i);
+    };
     div.querySelectorAll('.move-btn').forEach(btn => {
       btn.onclick = e => { e.stopPropagation(); moveItem(parseInt(btn.dataset.idx), parseInt(btn.dataset.dir)); };
     });
@@ -1079,17 +1074,14 @@ function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return
 // 快取版本號 — 避免即時同步用伺服器舊資料蓋掉剛修改的本機資料
 let cacheVersion = 0;
 function bumpCache() { cacheVersion++; }
-function del(i, el) {
+function del(i) {
   const d=cache[dk(currentDate)];
   if(!d||!d.items[i]) return;
   d.items.splice(i,1);
-  // 直接從 DOM 移除，不依賴 render() 重繪
-  if (el && el.parentNode) el.remove();
-  // 重新編號
-  const list=document.getElementById('checklist');
-  const all=list?.querySelectorAll('.check-item');
-  if (all) all.forEach((e,j)=>{ const n=e.querySelector('.item-num'); if(n) n.textContent=j+1; });
   bumpCache();
+  // 🔴 一定要重新渲染：先前只把 DOM 節點移除，其他項目的刪除/勾選/上下移按鈕索引會全部過期
+  //    → 再刪一筆就會刪到別筆（症狀：刪掉的重新整理又出現）
+  render();
   scheduleSave();
 }
 function toggleLock(i) { const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return; d.items[i].locked=!d.items[i].locked; render(); scheduleSave(); }

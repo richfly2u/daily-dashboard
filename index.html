@@ -477,7 +477,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30b（新增項目列改為編輯模式才出現；一般檢視只留勾選與名稱）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30c（啟用日期存檔後讀回雲端比對，失敗會顯示原因，不再靜默）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -1408,10 +1408,42 @@ function showNameDialog() {
     const newStartDate = sdInput || today();
     startDate = newStartDate;
     const ref = doc(db, "dashboard", boardKey);
-    try { await setDoc(ref, { _names: nameList.length ? nameList : DEFAULT_NAMES, _careEvery: careEvery, _careCount: careCount, _careInterval: careInterval, _careDates: careDates, _startDate: startDate }, { merge: true }); setStatus(true); } catch(e) { setStatus(false); }
-    // Re-render to apply new rotation and label
-    render();
-    dialog.style.display = 'none';
+    const payload = { _names: nameList.length ? nameList : DEFAULT_NAMES, _careEvery: careEvery, _careCount: careCount, _careInterval: careInterval, _careDates: careDates, _startDate: startDate };
+    // 存檔結果要看得見：寫入後立刻讀回雲端比對，不一致就顯示原因（不再靜默失敗）
+    let msg = document.getElementById('saveSettingMsg');
+    if (!msg) {
+      msg = document.createElement('div');
+      msg.id = 'saveSettingMsg';
+      msg.style.cssText = 'font-size:12px;margin-top:10px;line-height:1.5;white-space:pre-wrap;word-break:break-all;';
+      const row = dialog.querySelector('.btn-row');
+      if (row) row.parentNode.insertBefore(msg, row); else dialog.querySelector('.cute-dialog').appendChild(msg);
+    }
+    msg.style.color = '#a78bfa';
+    msg.textContent = '儲存中…';
+    try {
+      await setDoc(ref, payload, { merge: true });
+      const chk = await getDocFromServer(ref);
+      const got = chk.exists() ? chk.data()._startDate : null;
+      if (String(got) !== String(startDate)) {
+        console.error('settings verify mismatch', { want: startDate, got: got });
+        msg.style.color = '#f87171';
+        msg.textContent = '⚠️ 雲端沒收到：雲端目前是 ' + got + '（要的是 ' + startDate + '）';
+        setStatus(false);
+      } else {
+        msg.style.color = '#34d399';
+        msg.textContent = '✅ 已存到雲端：啟用日期 ' + got;
+        setStatus(true);
+        render();
+        dialog.style.display = 'none';
+      }
+    } catch (e) {
+      const code = (e && (e.code || e.message)) || String(e);
+      window.__lastSaveErr = code;
+      console.error('settings save failed', e);
+      msg.style.color = '#f87171';
+      msg.textContent = '❌ 存檔失敗：' + code;
+      setStatus(false);
+    }
   };
   populateCareInputs();
   renderNameList();

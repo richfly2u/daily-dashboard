@@ -477,7 +477,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30c（啟用日期存檔後讀回雲端比對，失敗會顯示原因，不再靜默）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30d（跨裝置防互蓋：項目帶 id/時間戳，存檔前與雲端合併，舊分頁不再蓋掉剛改好的習慣項目）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -619,9 +619,7 @@ async function loadDay(key, dateStr) {
     await inheritMasterTemplate();
   }
   if (dayData && dayData.items) {
-    let migrated = dayData.items.map(i => typeof i === 'string'
-      ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
-      : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
+    let migrated = normItems(dayData.items).map(i => ({...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}));
     // 🔴 絕對不要用「索引」去比對 DEFAULTS：使用者刪掉/新增項目後清單長度就和 DEFAULTS 不同，
     //    按索引同步會把項目改名、改型別，甚至憑空長出項目（舊症狀：刪掉的東西重新整理又出現）
     //    改為：名稱題的標題固定用預設字；文字空白的項目給一個安全預設值，其餘一律尊重使用者資料
@@ -630,7 +628,7 @@ async function loadDay(key, dateStr) {
       if (it.type === 'name-picker' && _npDef) { it.text = _npDef.text; return; }
       if (!it.text || !String(it.text).trim()) it.text = '(未命名)';
     });
-    cache[dateStr] = { items: migrated };
+    cache[dateStr] = { items: migrated, _del: dayData._del || {} };
     // ✅ 確保 name-picker 項目永遠存在（即使 Firestore 沒有）
     if (!migrated.find(i => i.type === 'name-picker')) {
       const np = DEFAULTS.find(i => i.type === 'name-picker');
@@ -642,7 +640,7 @@ async function loadDay(key, dateStr) {
     //    輪替本來就會在 ensureTodayNamePickerSelected() 覆蓋 selected，這裡不需要再插一腳；
     //    「換人時把愛心清掉」也改到那裡，只在人真的換了才動作。
   } else {
-    cache[dateStr] = { items: getTemplate().map(i => ({...i, done:false, selected:i.selected||"", notes:""})) };
+    cache[dateStr] = { items: normItems(getTemplate()).map(i => ({...i, done:false, selected:i.selected||"", notes:""})), _del: {} };
     // ✅ 確保 name-picker 項目永遠存在
     if (!cache[dateStr].items.find(i => i.type === 'name-picker')) {
       const np = DEFAULTS.find(i => i.type === 'name-picker');
@@ -655,12 +653,21 @@ async function loadDay(key, dateStr) {
 }
 
 async function saveCurrentDay() {
-  const day = cache[dk(currentDate)];
+  const dayKey = dk(currentDate);
+  const day = cache[dayKey];
   if (!day) return;
   const gen = changeGen;   // 這次要寫入的版本
   const ref = doc(db, "dashboard", boardKey);
   const update = {};
-  update[dk(currentDate)] = { items: day.items.map(i => ({text:i.text,type:i.type,done:i.done,selected:i.selected||"",notes:i.notes||"",locked:i.locked!==false})) };
+  // 🔴 寫入前先讀伺服器版本、逐筆比 u 合併：另一個分頁／裝置手上的舊清單不會再蓋掉剛改好的內容
+  let serverDay = {};
+  try { const _sd = await loadDoc(); serverDay = (_sd && _sd[dayKey]) || {}; } catch (e) {}
+  const mergedDel = mergeDel(serverDay._del, day._del);
+  const _snapshot = JSON.stringify(day.items.map(i => [i.id, i.text, !!i.done]));
+  day.items = mergeItems(serverDay.items, day.items, mergedDel);
+  day._del = mergedDel;
+  const _after = JSON.stringify(day.items.map(i => [i.id, i.text, !!i.done]));
+  update[dayKey] = { items: day.items.map(itemToSave), _del: mergedDel };
   update._nameList = nameList;
   update._careEvery = careEvery;
   update._careCount = careCount;
@@ -672,6 +679,7 @@ async function saveCurrentDay() {
     await setDoc(ref, update, { merge: true });
     setStatus(true);
     if (gen === changeGen) dirtyToday = false;   // 寫入期間沒有新變更 → 本機已與伺服器一致
+    if (_snapshot !== _after) { try { render(); } catch (e) {} }   // 合併後清單有變 → 畫面同步
   } catch(e) { setStatus(false); }
 }
 
@@ -823,6 +831,7 @@ function render() {
       const selEl = div.querySelector('.name-select');
       if (selEl) selEl.onchange = function() {
         item.selected = this.value;
+        item.u = Date.now();
         updateCareDates(this.value);
         const s = div.querySelector('.item-selected');
         if (s) s.textContent = this.value || '未選';
@@ -860,7 +869,7 @@ function render() {
       inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
       const save = () => {
         const v = inp.value.trim();
-        if (v && v !== item.text) { item.text = v; scheduleSave(); }
+        if (v && v !== item.text) { item.text = v; item.u = Date.now(); scheduleSave(); }
         const span = document.createElement('span');
         span.className = 'item-text' + (isNp ? ' name-picker' : '');
         span.textContent = isNp ? '👤 ' + (v||item.text) : (v||item.text);
@@ -885,7 +894,7 @@ function render() {
     list.appendChild(div);
   });
   document.querySelectorAll('.note-area textarea').forEach(ta => {
-    ta.oninput = () => { const idx=parseInt(ta.dataset.idx); const d=cache[dk(currentDate)]; if (d && d.items[idx]) d.items[idx].notes=ta.value; scheduleSave(); };
+    ta.oninput = () => { const idx=parseInt(ta.dataset.idx); const d=cache[dk(currentDate)]; if (d && d.items[idx]) { d.items[idx].notes=ta.value; d.items[idx].u=Date.now(); } scheduleSave(); };
   });
   document.querySelectorAll('.note-close-btn').forEach(btn => {
     btn.onclick = () => { document.getElementById('noteArea'+btn.dataset.idx).classList.remove('open'); };
@@ -968,14 +977,12 @@ function startRealtimeSync() {
       for (const [ds, dd] of Object.entries(data)) {
         if (ds.startsWith('_')) continue;
         if (dd && dd.items) {
-          const mapped = dd.items.map(i => typeof i === 'string'
-            ? {text:i,type:"text",done:false,selected:"",notes:"",locked:true}
-            : {...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false});
+          const mapped = normItems(dd.items).map(i => ({...i, done:i.done||false, selected:i.selected||"", notes:i.notes||"", locked:i.locked!==false}));
           if (ds === todayKey) {
-            if (!dirtyToday) cache[todayKey] = { items: mapped };
+            if (!dirtyToday) cache[todayKey] = { items: mapped, _del: dd._del || {} };
             continue;
           }
-          cache[ds] = { items: mapped };
+          cache[ds] = { items: mapped, _del: dd._del || {} };
         }
       }
       if (!cache[todayKey]) {
@@ -1104,14 +1111,64 @@ function parseDateUTC(dateStr) {
   const [y,m,d] = dateStr.split('-').map(Number);
   return Date.UTC(y, m-1, d);
 }
-function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; render(); scheduleSave(); }
+function toggle(i) { const d=cache[dk(currentDate)]; if (!d||!d.items[i]) return; d.items[i].done=!d.items[i].done; d.items[i].u = Date.now(); render(); scheduleSave(); }
 // 快取版本號 — 避免即時同步用伺服器舊資料蓋掉剛修改的本機資料
 let cacheVersion = 0;
 function bumpCache() { cacheVersion++; }
+
+// ==== 跨裝置防互蓋（2026-10-30） ====
+// 症狀：在手機改好習慣項目，另一台／另一個還開著的分頁一存檔（勾選、刪除）
+//       就把它的「舊清單」整份寫回，改好的內容被蓋掉、重整像「恢復原來的」。
+// 做法：每一筆項目帶 id（穩定識別）＋ u（修改時間戳），存檔前先讀伺服器、
+//       逐筆比 u 決定誰新，並用 _del 墓碑記住刪除，避免被另一邊「復活」。
+function uid() { return 'i' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4); }
+function normItems(arr) {
+  return (Array.isArray(arr) ? arr : []).map(i => {
+    const o = (typeof i === 'string') ? { text: i, type: 'text' } : { ...i };
+    if (!o.id) o.id = uid();
+    if (!o.u) o.u = 0;
+    if (!o.type) o.type = 'text';
+    return o;
+  });
+}
+function mergeDel(serverDel, localDel) {
+  const cutoff = Date.now() - 1000 * 60 * 60 * 24 * 90;   // 90 天前的墓碑就丟掉，別讓文件一直長大
+  const out = {};
+  for (const src of [serverDel || {}, localDel || {}]) {
+    for (const [k, v] of Object.entries(src)) {
+      const t = Number(v) || 0;
+      if (t >= cutoff) out[k] = Math.max(out[k] || 0, t);
+    }
+  }
+  return out;
+}
+function mergeItems(serverItems, localItems, tombstones) {
+  const s = normItems(serverItems), l = normItems(localItems), tb = tombstones || {};
+  const smap = new Map(s.map(x => [x.id, x])), lmap = new Map(l.map(x => [x.id, x]));
+  const pick = new Map();
+  for (const [id, si] of smap) {
+    if (tb[id] && (tb[id] || 0) >= (si.u || 0)) continue;
+    const li = lmap.get(id);
+    pick.set(id, (li && (li.u || 0) > (si.u || 0)) ? li : si);
+  }
+  for (const [id, li] of lmap) {
+    if (pick.has(id) || tb[id]) continue;
+    pick.set(id, li);
+  }
+  const out = [];
+  for (const li of l) if (pick.has(li.id)) { out.push(pick.get(li.id)); pick.delete(li.id); }  // 本機順序優先
+  for (const si of s) if (pick.has(si.id)) out.push(pick.get(si.id));
+  return out;
+}
+function itemToSave(i) {
+  return { id: i.id || uid(), text: i.text, type: i.type || 'text', done: !!i.done,
+           selected: i.selected || "", notes: i.notes || "", locked: i.locked !== false, u: i.u || 0 };
+}
 function del(i) {
   const d=cache[dk(currentDate)];
   if(!d||!d.items||!d.items[i]) return;
-  d.items.splice(i,1);
+  const _rm = d.items.splice(i,1)[0];
+  if (_rm && _rm.id) { d._del = d._del || {}; d._del[_rm.id] = Date.now(); }   // 墓碑：別讓另一台把它復活
   bumpCache();
   // 🔴 一定要重新渲染：先前只把 DOM 節點移除，其他項目的刪除/勾選/上下移按鈕索引會全部過期
   //    → 再刪一筆就會刪到別筆、甚至完全沒反應（症狀：刪不掉／刪掉的重新整理又出現）
@@ -1283,7 +1340,7 @@ function _dragEnd(e) {
     }
   }
 }
-function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({text:t,type:"text",done:false,selected:"",notes:"",locked:false}); render(); scheduleSave(); }
+function addItem(t) { t=t.trim(); if(!t) return; const d=cache[dk(currentDate)]; if(!d) return; d.items.push({id:uid(),text:t,type:"text",done:false,selected:"",notes:"",locked:false,u:Date.now()}); render(); scheduleSave(); }
 
 // 回傳範本定義（若無自訂範本則用 DEFAULTS）
 function getTemplate() {

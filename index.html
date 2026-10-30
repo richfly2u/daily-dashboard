@@ -172,8 +172,10 @@
   .item-selected { color: #a78bfa; font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 36px; }
   .item-text.name-picker { flex: none; min-width: 70px; }
   @keyframes editSlideIn { 0% { opacity: 0; transform: translateX(-40px); } 100% { opacity: 1; transform: translateX(0); } }
-  .check-item .edit-btn { display: inline-block; }
+  .check-item .edit-btn { display: none; }
+  .check-item .note-btn { display: none; }
   .check-item .del-btn { display: none; }
+  .edit-mode .note-btn { display: inline-block !important; }
   .edit-mode .edit-btn, .edit-mode .del-btn, .edit-mode .move-btn { display: inline-block !important; }
   .edit-mode .edit-btn { opacity: 0.6 !important; }
   .edit-mode .del-btn { opacity: 0.9 !important; min-width: 40px; min-height: 40px; font-size: 20px; padding: 6px; }
@@ -474,7 +476,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-09-26g（刪除立刻寫入，修正刪掉又重新整理又跑回來）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30a（一般檢視移除鎖／鉛筆／備註圖示，改名與刪除改在「編輯項目」模式）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -798,7 +800,6 @@ function render() {
     div.innerHTML =
       `<div class="item-body">` +
         `<span class="item-num">${i+1}</span><div class="cb">✓</div>${extraHTML}` +
-        `<button class="lock-btn" data-idx="${i}">${locked?'🔒':'🔓'}</button>` +
         `<button class="drag-handle" data-idx="${i}">⠿</button>` +
         `<button class="edit-btn" data-idx="${i}">✏️</button>` +
         `<button class="del-btn" data-idx="${i}">✕</button>` +
@@ -841,16 +842,13 @@ function render() {
         a.querySelector('textarea').focus();
       };
     }
-    div.querySelector('.lock-btn').onclick = e => { e.stopPropagation(); toggleLock(i); };
     if (ro) {
       div.querySelector('.edit-btn').style.display = 'none';
-      div.querySelector('.lock-btn').style.display = 'none';
     }
     div.querySelector('.edit-btn').onclick = e => {
       e.stopPropagation();
       const d=cache[dk(currentDate)]; if(!d||!d.items[i]) return;
       const item=d.items[i];
-      if (item.locked && !editMode) return;
       const textSpan = div.querySelector('.item-text');
       if (!textSpan || textSpan.tagName==='INPUT') return;
       const isNp = item.type === 'name-picker';

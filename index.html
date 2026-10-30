@@ -477,7 +477,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30d（跨裝置防互蓋：項目帶 id/時間戳，存檔前與雲端合併，舊分頁不再蓋掉剛改好的習慣項目）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30e（跨裝置防互蓋：舊項目用固定 id，避免兩邊各自編號造成清單重複）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -1122,10 +1122,18 @@ function bumpCache() { cacheVersion++; }
 // 做法：每一筆項目帶 id（穩定識別）＋ u（修改時間戳），存檔前先讀伺服器、
 //       逐筆比 u 決定誰新，並用 _del 墓碑記住刪除，避免被另一邊「復活」。
 function uid() { return 'i' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4); }
+function legacyHash(str) {
+  // 穩定的短雜湊：同一段文字在任何裝置都算出同一個值（用來當舊資料的固定 id）
+  let h = 5381;
+  for (let k = 0; k < String(str).length; k++) h = ((h * 33) ^ String(str).charCodeAt(k)) >>> 0;
+  return h.toString(36);
+}
 function normItems(arr) {
-  return (Array.isArray(arr) ? arr : []).map(i => {
+  // 🔴 舊資料（沒有 id）一定要用「索引＋文字」算固定 id，不能隨機！
+  //    兩個分頁各自載入時若拿到不同亂數 id，存檔合併就會被當成兩批不同項目 → 清單變雙倍。
+  return (Array.isArray(arr) ? arr : []).map((i, idx) => {
     const o = (typeof i === 'string') ? { text: i, type: 'text' } : { ...i };
-    if (!o.id) o.id = uid();
+    if (!o.id) o.id = 'L' + idx + '_' + legacyHash(o.text || '');
     if (!o.u) o.u = 0;
     if (!o.type) o.type = 'text';
     return o;

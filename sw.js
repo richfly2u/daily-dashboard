@@ -2,7 +2,7 @@
 // Version: 2026-09-26-v5 (HTML 一定要繞過瀏覽器 HTTP 快取：GitHub Pages 是 max-age=600，
 //          只寫 fetch(e.request) 會吃到快取舊 HTML → 改了版前賢還看到舊畫面)
 
-const CACHE = 'daily-dash-v6';
+const CACHE = 'daily-dash-v7';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

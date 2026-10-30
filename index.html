@@ -144,7 +144,8 @@
   .nh-person { color: #a78bfa; font-size: 11px; }
   .nh-text { color: #777; word-break: break-word; }
   .nh-empty { font-size: 11px; color: #444; font-style: italic; }
-  .add-wrap { display: flex; gap: 8px; margin-bottom: 28px; }
+  .add-wrap { display: none; gap: 8px; margin-bottom: 28px; }
+  body.editing-items .add-wrap { display: flex; }
   .add-wrap input { flex: 1; background: rgba(255,255,255,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(52,211,153,0.4); border-radius: 10px; padding: 10px 14px; color: #e8e8ed; font-size: 14px; outline: none; box-shadow: 0 0 16px rgba(52,211,153,0.08); }
   .add-wrap input:focus { border-color: #6c5ce7; box-shadow: 0 0 24px rgba(108,92,231,0.18); }
   .add-wrap .add-btn { background: linear-gradient(135deg, #6c5ce7, #a855f7); border: 1.5px solid rgba(168,85,247,0.5); color: white; font-size: 18px; width: 40px; border-radius: 10px; cursor: pointer; font-weight: 600; box-shadow: 0 0 16px rgba(168,85,247,0.15); }
@@ -476,7 +477,7 @@ textarea { border-radius: 14px !important; }
     <button class="footer-btn" id="nameListBtn">👥 名單管理</button>
     <button class="footer-btn" id="logoutBtn">🚪 切換帳號</button>
   </div>
-  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30a（一般檢視移除鎖／鉛筆／備註圖示，改名與刪除改在「編輯項目」模式）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
+  <div style="text-align:center;margin-top:10px;font-size:11px;opacity:0.55" id="verTag">版本 2026-10-30b（新增項目列改為編輯模式才出現；一般檢視只留勾選與名稱）<br><a href="#" id="forceUpdate" style="color:inherit;text-decoration:underline">畫面沒更新？點這裡強制更新</a></div>
 </div>
 
 <div class="cal-overlay" id="calOverlay">
@@ -1546,6 +1547,7 @@ document.getElementById('careToggleBtn').onclick = () => {
 };
 document.getElementById('editToggle').onclick = () => {
   editMode = !editMode;
+  document.body.classList.toggle('editing-items', editMode);
   document.getElementById('editToggle').textContent = editMode ? '✅完成編輯' : '✏️編輯項目';
   document.getElementById('editToggle').className = 'edit-toggle' + (editMode ? ' active' : '');
   render();

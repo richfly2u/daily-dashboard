@@ -33,10 +33,8 @@ service cloud.firestore {
       // uid = alansnoopy@gmail.com（Google 登入）
       allow read: if request.auth != null && request.auth.uid == '6VHqq8m7odWTcnwfetkOvjgVhp83';
       allow write: if request.auth != null && request.auth.uid == '6VHqq8m7odWTcnwfetkOvjgVhp83'
-        // Protect _startDate from being overwritten once set
-        && (!request.resource.data.keys().hasAny(['_startDate'])
-            || !resource.data.keys().hasAny(['_startDate'])
-            || request.resource.data._startDate == resource.data._startDate)
+        // 2026-10-30 前賢回報「啟用日期改了存了還是 5/26」：原本規則禁止 _startDate 一旦寫入就不可改，
+        // 導致設定存檔被 Firestore 以 permission-denied 拒絕（前端靜默失敗）。已移除該限制，只保留本人 uid。
         // Limit document size (prevents runaway data)
         && request.resource.data.size() < 102400;
     }
